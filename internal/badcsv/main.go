@@ -7,12 +7,13 @@ import (
 )
 
 type Course struct {
-	dept   string
-	num    string
-	deptId string
-	campus string
-	title  string
-	desc   string
+	Id           string
+	Department   string
+	Number       string
+	DepartmentId string
+	Campus       string
+	Title        string
+	Description  string
 }
 
 const expectHead = "" +
@@ -185,12 +186,13 @@ func Parse(input []byte) ([]*Course, []*warn, []*fail, error) {
 		}
 
 		entries = append(entries, &Course{
-			dept:   codeDept,
-			num:    codeNum,
-			deptId: colDepartmentExternalId,
-			campus: colInstitutionExternalId,
-			title:  colCourseTitle,
-			desc:   colDescription,
+			Id:           colExternalId,
+			Department:   codeDept,
+			Number:       codeNum,
+			DepartmentId: colDepartmentExternalId,
+			Campus:       colInstitutionExternalId,
+			Title:        colCourseTitle,
+			Description:  colDescription,
 		})
 	}
 	return entries, warns, fails, nil
