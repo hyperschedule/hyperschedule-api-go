@@ -3,20 +3,30 @@ package main
 import (
   "log"
   "net/http"
-  "github.com/sendgrid/sendgrid-go/helpers/inbound"
+  "github.com/davecgh/go-spew/spew"
+  //"github.com/sendgrid/sendgrid-go/helpers/inbound"
 )
 
 func inboundHandler(resp http.ResponseWriter, req *http.Request) {
-  email := inbound.Parse(req)
-  log.Printf("got email from %#v", email.Headers["From"])
-
-  for f, _ := range email.Attachments {
-    log.Printf("has attachments %#v", f)
+  log.Printf("got request from %s", req.RemoteAddr)
+  err := req.ParseMultipartForm(0)
+  if err != nil {
+    log.Printf("invalid request")
+    return
   }
 
-  for sec, _ := range email.Body {
-    log.Printf("has body %#v", sec);
-  }
+  spew.Dump(req.MultipartForm)
+
+  //email := inbound.Parse(req)
+  //log.Printf("got email from %#v", email.Headers["From"])
+
+  //for f, _ := range email.Attachments {
+  //  log.Printf("has attachments %#v", f)
+  //}
+
+  //for sec, _ := range email.Body {
+  //  log.Printf("has body %#v", sec);
+  //}
 
   resp.WriteHeader(http.StatusOK)
 }
