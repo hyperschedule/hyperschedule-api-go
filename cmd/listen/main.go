@@ -1,13 +1,12 @@
 package main
 
 import (
-  "fmt"
   "log"
   "net/http"
   "github.com/sendgrid/sendgrid-go/helpers/inbound"
 )
 
-func inboundHandler(resp http.ResponseWrite, req *http.Request) {
+func inboundHandler(resp http.ResponseWriter, req *http.Request) {
   email := inbound.Parse(req)
   log.Printf("got email from %#v", email.Headers["From"])
 
