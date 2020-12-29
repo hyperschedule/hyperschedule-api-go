@@ -1,4 +1,4 @@
-package calendarsessionsection
+package staff
 
 import (
   "io"
@@ -6,14 +6,16 @@ import (
 )
 
 var expectHead = []string{
-  "calendarSessionExternalId",
-  "courseSectionExternalId",
+  "externalId",
+  "firstName",
+  "lastName",
 }
 
 func parse(record []string) *Entry {
   return &Entry{
     Id: record[0],
-    CourseSectionId: record[1],
+    First: record[1],
+    Last: record[1],
   }
 }
 

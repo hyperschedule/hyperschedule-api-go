@@ -47,7 +47,7 @@ func parseDays(s string) (Days, error) {
   return days, nil
 }
 
-func parse(record []string) (*CourseSectionSchedule, error) {
+func parse(record []string) (*Entry, error) {
   colExternalId := record[0]
   colCourseSectionExternalId := record[1]
   colClassBeginningTime := record[2]
@@ -69,7 +69,7 @@ func parse(record []string) (*CourseSectionSchedule, error) {
     return nil, err
   }
 
-  return &CourseSectionSchedule{
+  return &Entry{
     Id: colExternalId,
     CourseSectionId: colCourseSectionExternalId,
     Start: start,
@@ -79,8 +79,8 @@ func parse(record []string) (*CourseSectionSchedule, error) {
   }, nil
 }
 
-func ReadAll(r io.Reader) ([]*CourseSectionSchedule, []error, error) {
-  courseSectionSchedules := make([]*CourseSectionSchedule, 0, 1024)
+func ReadAll(r io.Reader) ([]*Entry, []error, error) {
+  courseSectionSchedules := make([]*Entry, 0, 1024)
   errs, err := csvutil.Collect(r, expectHead, func(record []string) error {
     courseSectionSchedule, err := parse(record)
     if err != nil {

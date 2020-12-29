@@ -7,7 +7,7 @@ type Time struct{
 
 type Days int
 
-type CourseSectionSchedule struct{
+type Entry struct{
   Id string
   CourseSectionId string
   Start *Time

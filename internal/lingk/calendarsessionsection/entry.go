@@ -1,6 +1,6 @@
 package calendarsessionsection
 
-type CalendarSessionSection struct{
+type Entry struct{
   Id string
   CourseSectionId string
 }

@@ -84,7 +84,7 @@ func parseDate(s string) (*Date, error) {
   }, nil
 }
 
-func parse(record []string) (*CalendarSession, error) {
+func parse(record []string) (*Entry, error) {
   colExternalId := record[0]
   colDesignator := record[1]
   colBeginDate := record[2]
@@ -99,7 +99,7 @@ func parse(record []string) (*CalendarSession, error) {
     return nil, err
   }
 
-  return &CalendarSession{
+  return &Entry{
     Id: colExternalId,
     Semester: colDesignator,
     Start: start,
@@ -107,15 +107,15 @@ func parse(record []string) (*CalendarSession, error) {
   }, nil
 }
 
-func Read(r io.Reader) ([]*CalendarSession, []error, error) {
-  calendarSessions := make([]*CalendarSession, 0, 8)
+func ReadAll(r io.Reader) ([]*Entry, []error, error) {
+  entries := make([]*Entry, 0, 8)
   errs, err := csvutil.Collect(r, expectHead, func(record []string) error {
-    calendarSession, err := parse(record)
+    entry, err := parse(record)
     if err != nil {
       return err
     }
-    calendarSessions = append(calendarSessions, calendarSession)
+    entries = append(entries, entry)
     return nil
   })
-  return calendarSessions, errs, err
+  return entries, errs, err
 }

@@ -6,7 +6,7 @@ type Date struct{
   Day int
 }
 
-type CalendarSession struct{
+type Entry struct{
   Id string
   Semester string
   Start *Date

@@ -18,7 +18,7 @@ var expectHead = []string{
   "CreditHours",
 }
 
-func parse(record []string) (*CourseSection, error) {
+func parse(record []string) (*Entry, error) {
   colExternalId := record[0]
   colCourseExternalId := record[1]
   colCourseSectionNumber := record[2]
@@ -66,7 +66,7 @@ func parse(record []string) (*CourseSection, error) {
     return nil, errors.New("float credits unexpected value")
   }
 
-  return &CourseSection{
+  return &Entry{
     Id: colExternalId,
     CourseId: colCourseExternalId,
     Section: section,
@@ -76,8 +76,8 @@ func parse(record []string) (*CourseSection, error) {
   }, nil
 }
 
-func ReadAll(r io.Reader) ([]*CourseSection, []error, error) {
-  courseSections := make([]*CourseSection, 0, 1024)
+func ReadAll(r io.Reader) ([]*Entry, []error, error) {
+  courseSections := make([]*Entry, 0, 1024)
   errs, err := csvutil.Collect(r, expectHead, func(record []string) error {
     courseSection, err := parse(record)
     if err != nil {

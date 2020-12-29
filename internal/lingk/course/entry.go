@@ -1,6 +1,6 @@
 package course
 
-type Course struct {
+type Entry struct{
 	Id           string
 	Department   string
 	Number       string

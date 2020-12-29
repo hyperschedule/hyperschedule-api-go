@@ -8,7 +8,7 @@ const (
   Reopened
 )
 
-type CourseSection struct{
+type Entry struct{
   Id string
   CourseId string
   Section int

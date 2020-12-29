@@ -32,7 +32,7 @@ var reRow = regexp.MustCompile(fmt.Sprintf(
 ))
 var reCode = regexp.MustCompile(`^([A-Z_/-]+) *([0-9A-Z/ -]*?) *([A-Z]{2})?$`)
 
-func parse(row string) (*Course, []*warn, *fail) {
+func parse(row string) (*Entry, []*warn, *fail) {
   warns := make([]*warn, 0, 1)
 
   match := reRow.FindStringSubmatch(row)
@@ -52,7 +52,7 @@ func parse(row string) (*Course, []*warn, *fail) {
   colFacilityExternalId := match[8]
   colDescription := match[8]
 
-  failWith := func(data failData) (*Course, []*warn, *fail) {
+  failWith := func(data failData) (*Entry, []*warn, *fail) {
     return nil, nil, &fail{
       full: row,
       id:   colExternalId,
@@ -105,7 +105,7 @@ func parse(row string) (*Course, []*warn, *fail) {
     })
   }
 
-  return &Course{
+  return &Entry{
     Id:           colExternalId,
     Department:   codeDept,
     Number:       codeNum,
@@ -116,7 +116,7 @@ func parse(row string) (*Course, []*warn, *fail) {
   }, warns, nil
 }
 
-func ParseAll(contents []byte) ([]*Course, []*warn, []*fail, error) {
+func ParseAll(contents []byte) ([]*Entry, []*warn, []*fail, error) {
   matchHead := string(reHead.Find(contents))
   if matchHead != expectHead {
     return nil, nil, nil, ErrIncorrectHead(matchHead)
@@ -124,7 +124,7 @@ func ParseAll(contents []byte) ([]*Course, []*warn, []*fail, error) {
   contents = contents[len(matchHead):]
 
   chunks := append(reStart.FindAllIndex(contents, -1), []int{len(contents)})
-  courses := make([]*Course, 0, len(chunks)-1)
+  courses := make([]*Entry, 0, len(chunks)-1)
   fails := make([]*fail, 0, 8)
   warns := make([]*warn, 0, 8)
   for i, chunk := range chunks[:len(chunks)-1] {
