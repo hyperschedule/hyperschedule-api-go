@@ -9,6 +9,6 @@ type Date struct{
 type Entry struct{
   Id string
   Semester string
-  Start *Date
-  End *Date
+  Start Date
+  End Date
 }

@@ -4,6 +4,7 @@ import (
   "io"
   "strconv"
   "errors"
+  "strings"
   "github.com/MuddCreates/hyperschedule-api-go/internal/csvutil"
 )
 
@@ -19,16 +20,16 @@ var expectHead = []string{
 
 const dayString = "UMTWRFS"
 
-func parseTime(s string) (*Time, error) {
+func parseTime(s string) (Time, error) {
   n, err := strconv.Atoi(s)
   if err != nil {
-    return nil, err
+    return Time{}, err
   }
   h, m := n / 100, n % 100
   if !(0 <= h && h < 24 && 0 <= m && m < 60) {
-    return nil, errors.New("bad time range")
+    return Time{}, errors.New("bad time range")
   }
-  return &Time{Hour: h, Minute: m}, nil
+  return Time{Hour: h, Minute: m}, nil
 }
 
 func parseDays(s string) (Days, error) {
@@ -75,7 +76,7 @@ func parse(record []string) (*Entry, error) {
     Start: start,
     End: end,
     Days: days,
-    Location: colInstructionSiteName,
+    Location: strings.TrimSpace(colInstructionSiteName),
   }, nil
 }
 

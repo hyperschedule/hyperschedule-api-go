@@ -42,22 +42,22 @@ func monthDays(y, m int) int {
   return defaultMonthDays[m-1] + leap(y, m)
 }
 
-func parseDate(s string) (*Date, error) {
+func parseDate(s string) (Date, error) {
   segs := strings.Split(s, "-")
   if len(segs) != 3 {
-    return nil, errors.New("wrong number of segments in date")
+    return Date{}, errors.New("wrong number of segments in date")
   }
   year, err := strconv.Atoi(segs[0])
   if err != nil {
-    return nil, errors.New("bad year int")
+    return Date{}, errors.New("bad year int")
   }
   month, err := strconv.Atoi(segs[1])
   if err != nil {
-    return nil, errors.New("bad month int")
+    return Date{}, errors.New("bad month int")
   }
   day, err := strconv.Atoi(segs[2])
   if err != nil {
-    return nil, errors.New("bad day int")
+    return Date{}, errors.New("bad day int")
   }
 
   if !(2000 <= year && year < 2050) {
@@ -66,18 +66,18 @@ func parseDate(s string) (*Date, error) {
     // long way to go---if any of our entries appear to contain a year greater
     // than 2050, chances are that it's not actually the future; it's just a
     // bug in the formatting we're expecting.
-    return nil, errors.New("bad year range")
+    return Date{}, errors.New("bad year range")
   }
 
   if !(1 <= month && month <= 12) {
-    return nil, errors.New("bad month")
+    return Date{}, errors.New("bad month")
   }
 
   if !(1 <= day && day <= monthDays(year, month)) {
-    return nil, errors.New("bad days")
+    return Date{}, errors.New("bad days")
   }
 
-  return &Date{
+  return Date{
     Year: year,
     Month: month,
     Day: day,
