@@ -1,17 +1,12 @@
 package coursesectionschedule
 
-type Time struct{
-  Hour int
-  Minute int
-}
-
-type Days int
+import "github.com/MuddCreates/hyperschedule-api-go/internal/data"
 
 type Entry struct{
   Id string
   CourseSectionId string
-  Start Time
-  End Time
-  Days Days
+  Start data.Time
+  End data.Time
+  Days data.Days
   Location string
 }

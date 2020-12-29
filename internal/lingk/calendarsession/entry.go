@@ -1,14 +1,10 @@
 package calendarsession
 
-type Date struct{
-  Year int
-  Month int
-  Day int
-}
+import "github.com/MuddCreates/hyperschedule-api-go/internal/data"
 
 type Entry struct{
   Id string
   Semester string
-  Start Date
-  End Date
+  Start data.Date
+  End data.Date
 }

@@ -6,6 +6,7 @@ import (
   "strconv"
   "math"
   "github.com/MuddCreates/hyperschedule-api-go/internal/csvutil"
+  "github.com/MuddCreates/hyperschedule-api-go/internal/data"
 )
 
 var expectHead = []string{
@@ -32,22 +33,13 @@ func parse(record []string) (*Entry, error) {
     return nil, errors.New("invalid section")
   }
 
-  seatCapacity, err := strconv.Atoi(colCapacity)
+  seats, err := data.ParseSeats(colCurrentEnrollment, colCapacity)
   if err != nil {
-    return nil, errors.New("invalid capacity")
+    return nil, errors.New("invalid seats")
   }
 
-  seatEnrolled, err := strconv.Atoi(colCurrentEnrollment)
+  status, err := data.ParseStatus(colStatus)
   if err != nil {
-    return nil, errors.New("invalid enrollment")
-  }
-
-  var status Status
-  switch colStatus {
-  case "C": status = Closed
-  case "O": status = Open
-  case "R": status = Reopened
-  default:
     return nil, errors.New("invalid status")
   }
 
@@ -70,8 +62,7 @@ func parse(record []string) (*Entry, error) {
     Id: colExternalId,
     CourseId: colCourseExternalId,
     Section: section,
-    SeatCapacity: seatCapacity,
-    SeatEnrolled: seatEnrolled,
+    Seats: seats,
     Status: status,
   }, nil
 }

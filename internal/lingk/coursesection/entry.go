@@ -1,19 +1,12 @@
 package coursesection
 
-
-type Status int
-const (
-  Closed Status = iota
-  Open
-  Reopened
-)
+import "github.com/MuddCreates/hyperschedule-api-go/internal/data"
 
 type Entry struct{
   Id string
   CourseId string
   Section int
-  SeatCapacity int
-  SeatEnrolled int
-  Status Status
+  Seats data.Seats
+  Status data.Status
   QuarterCredits int
 }

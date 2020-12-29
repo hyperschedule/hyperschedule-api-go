@@ -8,6 +8,7 @@ import (
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsessionsection"
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/sectioninstructor"
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
+  "github.com/MuddCreates/hyperschedule-api-go/internal/data"
   "errors"
 )
 
@@ -21,16 +22,16 @@ type tables struct{
   staff []*staff.Entry
 }
 
-func (t *tables) prune() (*Data, []error) {
-  p := &Data{
-    terms: make(map[string]*Term),
-    courses: make(map[string]*Course),
-    courseSections: make(map[string]*CourseSection),
-    staff: make(map[string]Name),
+func (t *tables) prune() (*data.Data, []error) {
+  p := &data.Data{
+    Terms: make(map[string]*data.Term),
+    Courses: make(map[string]*data.Course),
+    CourseSections: make(map[string]*data.CourseSection),
+    Staff: make(map[string]data.Name),
   }
   errs := make([]error, 0)
 
-  // We don't add directly to `p.courses` here because the raw `course_1.csv`
+  // We don't add directly to `p.Courses` here because the raw `course_1.csv`
   // table contains all sorts of extraneous (bad) entries that are never
   // actually referenced by the `coursesection_1.csv` entries--which are the
   // items we actually care about, and which are far more
@@ -94,63 +95,55 @@ func (t *tables) prune() (*Data, []error) {
       continue
     }
 
-    if _, ok := p.courses[cs.CourseId]; !ok {
-      p.courses[cs.CourseId] = &Course{
+    if _, ok := p.Courses[cs.CourseId]; !ok {
+      p.Courses[cs.CourseId] = &data.Course{
         Title: lingkCourse.Title,
         Description: lingkCourse.Description,
         Campus: lingkCourse.Campus,
       }
     }
 
-    if _, ok := p.terms[termId]; !ok {
+    if _, ok := p.Terms[termId]; !ok {
       lingkTerm := terms[termId]
-      p.terms[termId] = &Term{
+      p.Terms[termId] = &data.Term{
         Semester: lingkTerm.Semester,
-        Start: Date{
-          Year: lingkTerm.Start.Year,
-          Month: lingkTerm.Start.Month,
-          Day: lingkTerm.Start.Day,
-        },
-        End: Date{
-          Year: lingkTerm.End.Year,
-          Month: lingkTerm.End.Month,
-          Day: lingkTerm.End.Day,
-        },
+        Start: lingkTerm.Start,
+        End: lingkTerm.End,
       }
     }
 
-    if _, ok = p.courseSections[cs.Id]; ok {
-      errs = append(errs, errors.New("dup coursesection id"))
+    if _, ok = p.CourseSections[cs.Id]; ok {
+      errs = append(errs, errors.New("dup.Coursesection id"))
     }
 
-    p.courseSections[cs.Id] = &CourseSection{
+    p.CourseSections[cs.Id] = &data.CourseSection{
       Course: cs.CourseId,
       Term: termId,
       Section: cs.Section,
-      Seats: Seats{Enrolled: cs.SeatEnrolled, Capacity: cs.SeatCapacity},
-      Status: Status(cs.Status),
+      Seats: cs.Seats,
+      Status: cs.Status,
       QuarterCredits: cs.QuarterCredits,
-      Schedule: make([]*Schedule, 0, 1),
+      Schedule: make([]*data.Schedule, 0, 1),
       Staff: make([]string, 0, 1),
     }
   }
 
   for _, s := range t.courseSectionSchedule {
-    cs, ok := p.courseSections[s.CourseSectionId]
+    cs, ok := p.CourseSections[s.CourseSectionId]
     if !ok {
       errs = append(errs, errors.New("schedule slot references nonexistent coursesectoin"))
       continue
     }
-    cs.Schedule = append(cs.Schedule, &Schedule{
-      Days: Days(s.Days),
-      Start: Time{Hour: s.Start.Hour, Minute: s.Start.Minute},
-      End: Time{Hour: s.End.Hour, Minute: s.End.Minute},
+    cs.Schedule = append(cs.Schedule, &data.Schedule{
+      Days: s.Days,
+      Start: s.Start,
+      End: s.End,
       Location: s.Location,
     })
   }
 
   for _, s := range t.sectionInstructor {
-    cs, ok := p.courseSections[s.CourseSectionId]
+    cs, ok := p.CourseSections[s.CourseSectionId]
     if !ok {
       errs = append(errs, errors.New("sectioninstructor references nonexistent coursesection"))
       continue
@@ -161,8 +154,8 @@ func (t *tables) prune() (*Data, []error) {
       continue
     }
 
-    if _, ok := p.staff[st.Id]; !ok {
-      p.staff[st.Id] = Name{
+    if _, ok := p.Staff[st.Id]; !ok {
+      p.Staff[st.Id] = data.Name{
         First: st.First,
         Last: st.Last,
       }

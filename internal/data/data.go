@@ -1,10 +1,10 @@
-package lingk
+package data
 
 type Data struct{
-  courseSections map[string]*CourseSection
-  courses map[string]*Course
-  terms map[string]*Term
-  staff map[string]Name
+  CourseSections map[string]*CourseSection
+  Courses map[string]*Course
+  Terms map[string]*Term
+  Staff map[string]Name
 }
 
 type CourseSection struct{
@@ -42,28 +42,3 @@ type Schedule struct{
   Location string
 }
 
-type Seats struct{
-  Capacity int
-  Enrolled int
-}
-
-type Days int
-
-type Time struct{
-  Hour int
-  Minute int
-}
-
-type Date struct{
-  Year int
-  Month int
-  Day int
-}
-
-type Status int
-
-const (
-  Closed Status = iota
-  Open
-  Reopened
-)

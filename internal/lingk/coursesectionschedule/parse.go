@@ -2,10 +2,9 @@ package coursesectionschedule
 
 import (
   "io"
-  "strconv"
-  "errors"
   "strings"
   "github.com/MuddCreates/hyperschedule-api-go/internal/csvutil"
+  "github.com/MuddCreates/hyperschedule-api-go/internal/data"
 )
 
 var expectHead = []string{
@@ -18,35 +17,6 @@ var expectHead = []string{
   "InstructionSiteType",
 }
 
-const dayString = "UMTWRFS"
-
-func parseTime(s string) (Time, error) {
-  n, err := strconv.Atoi(s)
-  if err != nil {
-    return Time{}, err
-  }
-  h, m := n / 100, n % 100
-  if !(0 <= h && h < 24 && 0 <= m && m < 60) {
-    return Time{}, errors.New("bad time range")
-  }
-  return Time{Hour: h, Minute: m}, nil
-}
-
-func parseDays(s string) (Days, error) {
-  var days Days
-  if len(s) != len(dayString) {
-    return days, errors.New("bad days length")
-  }
-  for i, c := range s {
-    switch byte(c) {
-    case '-':
-      case dayString[i]: days |= 1 << i
-    default:
-      return days, errors.New("unexpected character in day string")
-    }
-  }
-  return days, nil
-}
 
 func parse(record []string) (*Entry, error) {
   colExternalId := record[0]
@@ -57,15 +27,15 @@ func parse(record []string) (*Entry, error) {
   colInstructionSiteName := record[5]
   //colInstructionSiteType := record[6]
 
-  start, err := parseTime(colClassBeginningTime)
+  start, err := data.ParseTime(colClassBeginningTime)
   if err != nil {
     return nil, err
   }
-  end, err := parseTime(colClassEndingTime)
+  end, err := data.ParseTime(colClassEndingTime)
   if err != nil {
     return nil, err
   }
-  days, err := parseDays(colClassMeetingDays)
+  days, err := data.ParseDays(colClassMeetingDays)
   if err != nil {
     return nil, err
   }
