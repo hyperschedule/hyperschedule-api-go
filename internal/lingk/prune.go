@@ -21,78 +21,8 @@ type tables struct{
   staff []*staff.Entry
 }
 
-type Days int
-
-type Time struct{
-  Hour int
-  Minute int
-}
-
-type Date struct{
-  Year int
-  Month int
-  Day int
-}
-
-type Course struct{
-  Title string
-  Campus string
-  Description string
-}
-
-type Status int
-const (
-  Closed Status = iota
-  Open
-  Reopened
-)
-
-type Seats struct{
-  Capacity int
-  Enrolled int
-}
-
-type Term struct{
-  Semester string
-  Start Date
-  End Date
-}
-
-type CourseSection struct{
-  Course string
-  Term string
-  Section int
-  Seats Seats
-  Status Status
-  QuarterCredits int
-  Schedule []*Schedule
-  Staff []string
-}
-
-type Name struct{
-  First string
-  Last string
-}
-
-type Schedule struct{
-  Days Days
-  Start Time
-  End Time
-  Location string
-}
-
-type pruned struct{
-  terms map[string]*Term
-  courses map[string]*Course
-  courseSections map[string]*CourseSection
-  staff map[string]Name
-}
-
-type Entry struct{
-}
-
-func (t *tables) prune() (*pruned, []error) {
-  p := &pruned{
+func (t *tables) prune() (*Data, []error) {
+  p := &Data{
     terms: make(map[string]*Term),
     courses: make(map[string]*Course),
     courseSections: make(map[string]*CourseSection),
