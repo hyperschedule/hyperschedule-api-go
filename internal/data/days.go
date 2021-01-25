@@ -27,7 +27,7 @@ func ParseDays(s string) (Days, error) {
 func (d Days) String() string {
   s := make([]rune, 0)
   for i, c := range dayString {
-    if d & 1 << i != 0 {
+    if d >> i & 1 != 0 {
       s = append(s, c)
     }
   }
