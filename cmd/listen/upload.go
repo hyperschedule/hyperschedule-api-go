@@ -58,8 +58,8 @@ func validateEmail(email *LingkEmail) error {
   to := email.Envelope.To[0]
   hash := sha256.Sum256([]byte(to))
   if string(hash[:]) != uploadEmailHash {
+    log.Printf("expected %s, got %s (pre-hash %s)", uploadEmailHash, hash[:], to)
     return errors.New("hash mismatch, get rekt")
-
   }
 
   return nil
