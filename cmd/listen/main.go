@@ -25,6 +25,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func init() {
 	http.HandleFunc("/upload/", inboundHandler)
+  http.HandleFunc("/api/v3/", apiV3Handler)
 	cmd.Flags().IntVar(&port, "port", 80, "HTTP port to listen on.")
 
   uploadEmailHash = os.Getenv("UPLOAD_EMAIL_HASH")

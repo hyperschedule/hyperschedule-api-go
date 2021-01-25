@@ -95,12 +95,14 @@ func inboundHandler(resp http.ResponseWriter, req *http.Request) {
     return
   }
 
-  _, err = lingk.FromAttachment(email.Attachment)
+  data, err := lingk.FromAttachment(email.Attachment)
   if err != nil {
     log.Printf("UPLOAD: failed to parse, %s", err)
     resp.WriteHeader(http.StatusBadRequest)
     return
   }
+
+  state.SetData(data)
 
   log.Printf("UPLOAD: successfully parsed email")
 	resp.WriteHeader(http.StatusOK)
