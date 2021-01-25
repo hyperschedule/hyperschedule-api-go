@@ -1,6 +1,7 @@
 package main
 
 import (
+  "encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -10,7 +11,13 @@ import (
 type LingkEmail struct {
 	From string
   To string
+  Envelope *Envelope
   Attachment *multipart.FileHeader
+}
+
+type Envelope struct {
+  From string `json:"from"`
+  To string `json:"to"`
 }
 
 func parseEmail(req *http.Request) (*LingkEmail, error) {
@@ -28,8 +35,13 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 		return nil, errors.New("missing to")
 	}
 
-  for k, v := range req.MultipartForm.Value {
-    log.Printf("help %#v -> %#v", k, v)
+  envelopes := req.MultipartForm.Value["envelope"]
+  if len(envelopes) == 0 {
+    return nil, errors.New("missing envelope")
+  }
+  var envelope *Envelope
+  if err := json.Unmarshal([]byte(envelopes[0]), envelope); err != nil {
+    return nil, errors.New("failed to parse envelope json")
   }
 
   var attachment *multipart.FileHeader
@@ -45,6 +57,7 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 	return &LingkEmail{
 		From: from[0],
     To: to[0],
+    Envelope: envelope,
     Attachment: attachment,
 	}, nil
 }
@@ -65,6 +78,6 @@ func inboundHandler(resp http.ResponseWriter, req *http.Request) {
     return
 	}
 
-  log.Printf("UPLOAD: successfully parsed email, from = %s, to = %s", email.From, email.To)
+  log.Printf("UPLOAD: successfully parsed email, from = %s, to = %s", email.Envelope.From, email.Envelope.To)
 	resp.WriteHeader(http.StatusOK)
 }
