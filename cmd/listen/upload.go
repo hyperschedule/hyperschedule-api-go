@@ -23,9 +23,9 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 		return nil, errors.New("missing from")
 	}
 
-	to := req.MultipartForm.Value["from"]
+	to := req.MultipartForm.Value["to"]
 	if len(to) == 0 {
-		return nil, errors.New("missing from")
+		return nil, errors.New("missing to")
 	}
 
   var attachment *multipart.FileHeader
