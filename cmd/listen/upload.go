@@ -39,8 +39,8 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
   if len(envelopes) == 0 {
     return nil, errors.New("missing envelope")
   }
-  var envelope *Envelope
-  if err := json.Unmarshal([]byte(envelopes[0]), envelope); err != nil {
+  var envelope Envelope
+  if err := json.Unmarshal([]byte(envelopes[0]), &envelope); err != nil {
     log.Printf("%s", envelopes[0])
     log.Printf("%s", err)
     return nil, errors.New("failed to parse envelope json")
@@ -59,7 +59,7 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 	return &LingkEmail{
 		From: from[0],
     To: to[0],
-    Envelope: envelope,
+    Envelope: &envelope,
     Attachment: attachment,
 	}, nil
 }
