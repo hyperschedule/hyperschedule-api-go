@@ -9,6 +9,7 @@ import (
 
 type LingkEmail struct {
 	From string
+  To string
   Attachment *multipart.FileHeader
 }
 
@@ -19,6 +20,11 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 
 	from := req.MultipartForm.Value["from"]
 	if len(from) == 0 {
+		return nil, errors.New("missing from")
+	}
+
+	to := req.MultipartForm.Value["from"]
+	if len(to) == 0 {
 		return nil, errors.New("missing from")
 	}
 
@@ -34,6 +40,7 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 
 	return &LingkEmail{
 		From: from[0],
+    To: to[0],
     Attachment: attachment,
 	}, nil
 }
@@ -54,6 +61,6 @@ func inboundHandler(resp http.ResponseWriter, req *http.Request) {
     return
 	}
 
-  log.Printf("UPLOAD: successfully parsed email, from = %s", email.From)
+  log.Printf("UPLOAD: successfully parsed email, from = %s, to = %s", email.From, email.To)
 	resp.WriteHeader(http.StatusOK)
 }
