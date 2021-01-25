@@ -30,10 +30,10 @@ func Collect(
   errs := make([]error, 0)
   for {
     record, err := reader.Read()
-    if err != io.EOF {
+    if err != nil {
+    if err == io.EOF {
       break
     }
-    if err != nil {
       return nil, err
     }
     err = f(record)
