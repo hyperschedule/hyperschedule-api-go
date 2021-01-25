@@ -7,7 +7,17 @@ import (
   "encoding/json"
 )
 
+func getIp(req *http.Request) string {
+  f := req.Header.Get("X-Forwarded-For")
+  if len(f) != 0 {
+    return f
+  }
+  return req.RemoteAddr
+}
+
 func apiV3Handler(resp http.ResponseWriter, req *http.Request) {
+  log.Printf("API: received request from %s", getIp(req))
+
   data := state.GetData()
   if data == nil {
     log.Printf("received api request before loaded")
