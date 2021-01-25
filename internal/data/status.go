@@ -19,3 +19,12 @@ func ParseStatus(s string) (Status, error) {
     return 0, errors.New("invalid status")
   }
 }
+
+func (s Status) String() string {
+  switch s {
+  case Closed: return "Closed"
+  case Open: return "Open"
+  case Reopened: return "Reopened"
+  default: return ""
+  }
+}

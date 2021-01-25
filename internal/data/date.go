@@ -4,6 +4,7 @@ import (
   "strings"
   "strconv"
   "errors"
+  "fmt"
 )
 
 type Date struct{
@@ -79,4 +80,8 @@ func ParseDate(s string) (Date, error) {
     Month: month,
     Day: day,
   }, nil
+}
+
+func (d Date) String() string {
+  return fmt.Sprintf("%04d-%02d-%02d", d.Year, d.Month, d.Day)
 }

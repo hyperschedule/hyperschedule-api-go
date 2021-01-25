@@ -3,6 +3,7 @@ package data
 import (
   "strconv"
   "errors"
+  "fmt"
 )
 
 type Time struct{
@@ -22,4 +23,6 @@ func ParseTime(s string) (Time, error) {
   return Time{Hour: h, Minute: m}, nil
 }
 
-
+func (t Time) String() string {
+  return fmt.Sprintf("%02d:%02d", t.Hour, t.Minute)
+}
