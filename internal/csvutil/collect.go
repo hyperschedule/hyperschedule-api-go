@@ -4,6 +4,7 @@ import (
   "io"
   "encoding/csv"
   "errors"
+  "fmt"
 )
 
 func Collect(
@@ -22,7 +23,7 @@ func Collect(
   }
   for i, h := range head {
     if h != expectHead[i] {
-      return nil, errors.New("mismatch header")
+      return nil, errors.New(fmt.Sprintf("mismatch header: expecting %s but got %s on column %d", expectHead[i], h, i))
     }
   }
 
