@@ -83,6 +83,11 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
     course := d.Courses[cs.Course]
     term := d.Terms[cs.Term]
 
+    // more dirty hacks
+    if !strings.HasPrefix(cs.Term, "SP2021") {
+      continue
+    }
+
     instructors := make([]string, 0)
     for _, staff := range cs.Staff {
       name := d.Staff[staff]
