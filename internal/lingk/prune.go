@@ -2,25 +2,11 @@ package lingk
 
 import (
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/course"
-  "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/coursesection"
-  "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/coursesectionschedule"
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsession"
-  "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsessionsection"
-  "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/sectioninstructor"
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
   "github.com/MuddCreates/hyperschedule-api-go/internal/data"
   "errors"
 )
-
-type tables struct{
-  course []*course.Entry
-  courseSection []*coursesection.Entry
-  courseSectionSchedule []*coursesectionschedule.Entry
-  calendarSession []*calendarsession.Entry
-  calendarSessionSection []*calendarsessionsection.Entry
-  sectionInstructor []*sectioninstructor.Entry
-  staff []*staff.Entry
-}
 
 func (t *tables) prune() (*data.Data, []error) {
   p := &data.Data{
@@ -37,9 +23,9 @@ func (t *tables) prune() (*data.Data, []error) {
   // items we actually care about, and which are far more
   // well-formed/consistent than the `course_1.csv` entries.  
 
-  // So we build an intermediate dictionary `courses` below, but only add them
-  // to our final dictionary `p.Courses` when they _do_ get referenced by a
-  // `coursesection` entry.
+  // So we build an intermediate dictionary `courses` below, but only
+  // ("lazily") add them to our final dictionary `p.Courses` when they _do_ get
+  // referenced by a `coursesection` entry.
 
   // The `calendarsession_1.csv` and `staff_1.csv` tables do not suffer the
   // bad-data issues as `course_1.csv` does, but we might as well do the same
