@@ -11,8 +11,7 @@ import (
 var cmd = &cobra.Command{
 	Use:   "hyperschedule-server",
 	Short: "API server for Hyperschedule",
-	Run: func(cmd *cobra.Command, args []string) {
-	},
+	Run: run,
 }
 var port int
 
