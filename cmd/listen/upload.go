@@ -28,6 +28,10 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 		return nil, errors.New("missing to")
 	}
 
+  for k, v := range req.MultipartForm.Value {
+    log.Printf("help %#v -> %#v", k, v)
+  }
+
   var attachment *multipart.FileHeader
   for _, fhs := range req.MultipartForm.File {
     for _, fh := range fhs {
