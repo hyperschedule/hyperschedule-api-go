@@ -5,7 +5,9 @@ import (
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsession"
   "github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
   "github.com/MuddCreates/hyperschedule-api-go/internal/data"
+  "github.com/davecgh/go-spew/spew"
   "errors"
+  "log"
 )
 
 func (t *tables) prune() (*data.Data, []error) {
@@ -69,6 +71,8 @@ func (t *tables) prune() (*data.Data, []error) {
   }
 
   for _, cs := range t.courseSection {
+    log.Printf("heeeeeelllllp")
+    spew.Dump(cs)
     lingkCourse, ok := courses[cs.CourseId]
     if !ok {
       errs = append(errs, errors.New("missing course id"))
