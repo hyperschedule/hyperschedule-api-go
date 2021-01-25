@@ -50,7 +50,7 @@ func parse(row string) (*Entry, []*warn, *fail) {
   colDepartmentExternalId := match[6]
   colInstitutionExternalId := match[7]
   colFacilityExternalId := match[8]
-  colDescription := match[8]
+  colDescription := match[9]
 
   failWith := func(data failData) (*Entry, []*warn, *fail) {
     return nil, nil, &fail{
