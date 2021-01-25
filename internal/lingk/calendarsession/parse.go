@@ -10,7 +10,7 @@ var expectHead = []string{
   "externalId",
   "designator",
   "beginDate",
-  "endDate",
+  "EndDate",
 }
 
 func parse(record []string) (*Entry, error) {
