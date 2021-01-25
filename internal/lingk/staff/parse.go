@@ -15,7 +15,7 @@ func parse(record []string) *Entry {
   return &Entry{
     Id: record[0],
     First: record[1],
-    Last: record[1],
+    Last: record[2],
   }
 }
 
