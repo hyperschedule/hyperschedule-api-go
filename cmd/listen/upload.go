@@ -1,17 +1,17 @@
 package main
 
 import (
+  "crypto/sha256"
   "encoding/json"
 	"errors"
 	"log"
 	"net/http"
   "mime/multipart"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
 )
 
 type LingkEmail struct {
-	From string
-  To string
-  Envelope *Envelope
+  Envelope Envelope
   Attachment *multipart.FileHeader
 }
 
@@ -25,24 +25,12 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 		return nil, err
 	}
 
-	from := req.MultipartForm.Value["from"]
-	if len(from) == 0 {
-		return nil, errors.New("missing from")
-	}
-
-	to := req.MultipartForm.Value["to"]
-	if len(to) == 0 {
-		return nil, errors.New("missing to")
-	}
-
   envelopes := req.MultipartForm.Value["envelope"]
   if len(envelopes) == 0 {
     return nil, errors.New("missing envelope")
   }
   var envelope Envelope
   if err := json.Unmarshal([]byte(envelopes[0]), &envelope); err != nil {
-    log.Printf("%s", envelopes[0])
-    log.Printf("%s", err)
     return nil, errors.New("failed to parse envelope json")
   }
 
@@ -57,11 +45,24 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
   }
 
 	return &LingkEmail{
-		From: from[0],
-    To: to[0],
-    Envelope: &envelope,
+    Envelope: envelope,
     Attachment: attachment,
 	}, nil
+}
+
+func validateEmail(email *LingkEmail) error {
+  if len(email.Envelope.To) != 1 {
+    return errors.New("wrong number of email tos")
+  }
+
+  to := email.Envelope.To[0]
+  hash := sha256.Sum256([]byte(to))
+  if string(hash[:]) != uploadEmailHash {
+    return errors.New("hash mismatch, get rekt")
+
+  }
+
+  return nil
 }
 
 func inboundHandler(resp http.ResponseWriter, req *http.Request) {
@@ -86,6 +87,20 @@ func inboundHandler(resp http.ResponseWriter, req *http.Request) {
     return
 	}
 
-  log.Printf("UPLOAD: successfully parsed email, from = %s, to = %s", email.Envelope.From, email.Envelope.To)
+  if err := validateEmail(email); err != nil {
+    log.Printf("UPLOAD: wrong target email (unauthorized)")
+    resp.WriteHeader(http.StatusUnauthorized)
+    resp.Write([]byte("nice try"))
+    return
+  }
+
+  _, err = lingk.FromAttachment(email.Attachment)
+  if err != nil {
+    log.Printf("UPLOAD: failed to parse")
+    resp.WriteHeader(http.StatusBadRequest)
+    return
+  }
+
+  log.Printf("UPLOAD: successfully parsed email")
 	resp.WriteHeader(http.StatusOK)
 }
