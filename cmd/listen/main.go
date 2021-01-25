@@ -1,8 +1,8 @@
 package main
 
 import (
+  "os"
 	"fmt"
-	//"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
 	"github.com/spf13/cobra"
 	"log"
 	"net/http"
@@ -14,6 +14,7 @@ var cmd = &cobra.Command{
 	Run: run,
 }
 var port int
+var uploadEmailHash string
 
 func run(cmd *cobra.Command, args []string) {
 	addr := fmt.Sprintf(":%d", port)
@@ -25,6 +26,11 @@ func run(cmd *cobra.Command, args []string) {
 func init() {
 	http.HandleFunc("/upload/", inboundHandler)
 	cmd.Flags().IntVar(&port, "port", 80, "HTTP port to listen on.")
+
+  uploadEmailHash = os.Getenv("UPLOAD_EMAIL_HASH")
+  if len(uploadEmailHash) == 0 {
+    log.Fatalf("forgot to define UPLOAD_EMAIL_HASH")
+  }
 }
 
 func main() {
