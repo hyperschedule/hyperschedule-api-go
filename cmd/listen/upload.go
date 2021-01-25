@@ -41,6 +41,7 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
   }
   var envelope *Envelope
   if err := json.Unmarshal([]byte(envelopes[0]), envelope); err != nil {
+    log.Printf("%s", envelopes[0])
     return nil, errors.New("failed to parse envelope json")
   }
 
