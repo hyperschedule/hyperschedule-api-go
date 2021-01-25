@@ -8,6 +8,7 @@ import (
 	"net/http"
   "mime/multipart"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
+  "fmt"
 )
 
 type LingkEmail struct {
@@ -56,8 +57,8 @@ func validateEmail(email *LingkEmail) error {
   }
 
   to := email.Envelope.To[0]
-  hash := sha256.Sum256([]byte(to))
-  if string(hash[:]) != uploadEmailHash {
+  hash := fmt.Sprintf("%x", sha256.Sum256([]byte(to)))
+  if hash != uploadEmailHash {
     log.Printf("expected %s, got %s (pre-hash %s)", uploadEmailHash, hash[:], to)
     return errors.New("hash mismatch, get rekt")
   }
