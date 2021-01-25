@@ -113,11 +113,11 @@ func Unpack(fh *multipart.FileHeader) (*tables, error) {
     r, err := mem.Open()
     defer r.Close()
     if err != nil {
-      return nil, errors.New("failed to open zip")
+      return nil, err
     }
     err = unpacker(r)
     if err != nil {
-      return nil, errors.New("failed to unpack/parse csv")
+      return nil, err
     }
 	}
 
