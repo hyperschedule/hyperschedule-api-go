@@ -14,10 +14,10 @@ var cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 	},
 }
-var port *int
+var port int
 
 func run(cmd *cobra.Command, args []string) {
-	addr := fmt.Sprintf(":%d", *port)
+	addr := fmt.Sprintf(":%d", port)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("bad %v", err)
 	}
@@ -25,7 +25,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func init() {
 	http.HandleFunc("/upload/", inboundHandler)
-	port = cmd.Flags().Int("port", 80, "HTTP port to listen on.")
+	cmd.Flags().IntVar(&port, "port", 80, "HTTP port to listen on.")
 }
 
 func main() {
