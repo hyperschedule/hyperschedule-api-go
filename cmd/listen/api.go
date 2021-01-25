@@ -22,5 +22,6 @@ func apiV3Handler(resp http.ResponseWriter, req *http.Request) {
   }
 
   resp.Header().Add("Content-Type", "application/json")
+  resp.Header().Add("Access-Control-Allow-Origin", "*")
   resp.Write(output)
 }
