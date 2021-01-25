@@ -42,6 +42,7 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
   var envelope *Envelope
   if err := json.Unmarshal([]byte(envelopes[0]), envelope); err != nil {
     log.Printf("%s", envelopes[0])
+    log.Printf("%s", err)
     return nil, errors.New("failed to parse envelope json")
   }
 
@@ -69,6 +70,12 @@ func inboundHandler(resp http.ResponseWriter, req *http.Request) {
 		req.RemoteAddr,
 		req.Header["X-Forwarded-For"],
 	)
+
+  a, err := json.Marshal(&Envelope{
+    From: "hi",
+    To: []string{"yo"},
+  })
+  log.Printf("%s", a)
 
 	email, err := parseEmail(req)
 	if err != nil {
