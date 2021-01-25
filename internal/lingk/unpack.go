@@ -92,7 +92,7 @@ func (t *tables) unpackers() map[string]func(r io.Reader) error {
 }
 
 
-func unpack(fh *multipart.FileHeader) (*tables, error) {
+func Unpack(fh *multipart.FileHeader) (*tables, error) {
 	f, err := fh.Open()
 	if err != nil {
 		return nil, err
@@ -111,6 +111,7 @@ func unpack(fh *multipart.FileHeader) (*tables, error) {
       return nil, errors.New("unrecognized filename")
     }
     r, err := mem.Open()
+    defer r.Close()
     if err != nil {
       return nil, errors.New("failed to open zip")
     }

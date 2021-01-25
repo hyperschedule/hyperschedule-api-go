@@ -1,51 +1,39 @@
 package main
 
 import (
-  "log"
-  "net/http"
-  "github.com/davecgh/go-spew/spew"
-  "io/ioutil"
-  //"github.com/sendgrid/sendgrid-go/helpers/inbound"
+  "fmt"
+	//"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
+	"github.com/spf13/cobra"
+	"log"
+	"net/http"
 )
 
-func inboundHandler(resp http.ResponseWriter, req *http.Request) {
-  log.Printf("got request from %s (forwarded from %s)", req.RemoteAddr, req.Header["X-Forwarded-For"])
-  spew.Dump(req.Header)
-  err := req.ParseMultipartForm(0)
-  if err != nil {
-    log.Printf("invalid request")
-    return
-  }
+func initHttp() {
+	http.HandleFunc("/upload/", inboundHandler)
 
-  spew.Dump(req.MultipartForm)
+}
 
-  for key := range req.MultipartForm.Value {
-	  log.Printf("value key: %#v", key)
-  }
-  for key := range req.MultipartForm.File {
-	  log.Printf("file key: %#v", key)
-  }
-  a, err := ioutil.ReadDir("/run/user/1000")
-  if err != nil { log.Fatal(err) }
-  spew.Dump(a)
+func initCli() *cobra.Command {
+	var port *int
 
-  //email := inbound.Parse(req)
-  //log.Printf("got email from %#v", email.Headers["From"])
+	cmd := &cobra.Command{
+		Use:   "hyperschedule-server",
+		Short: "API server for Hyperschedule",
+		Run: func(cmd *cobra.Command, args []string) {
+      addr := fmt.Sprintf(":%d", *port)
+			if err := http.ListenAndServe(addr, nil); err != nil {
+				log.Fatalf("bad %v", err)
+			}
+		},
+	}
 
-  //for f, _ := range email.Attachments {
-  //  log.Printf("has attachments %#v", f)
-  //}
-
-  //for sec, _ := range email.Body {
-  //  log.Printf("has body %#v", sec);
-  //}
-
-  resp.WriteHeader(http.StatusOK)
+	port = cmd.Flags().Int("port", 80, "HTTP port to listen on.")
+	return cmd
 }
 
 func main() {
-  http.HandleFunc("/upload/", inboundHandler)
-  if err := http.ListenAndServe(":9123", nil); err != nil {
-    log.Fatalf("bad %v", err)
+  initHttp()
+  if err := initCli().Execute(); err != nil {
+    log.Fatalf("failed %v", err)
   }
 }
