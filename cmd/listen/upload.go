@@ -17,7 +17,7 @@ type LingkEmail struct {
 
 type Envelope struct {
   From string `json:"from"`
-  To string `json:"to"`
+  To []string `json:"to"`
 }
 
 func parseEmail(req *http.Request) (*LingkEmail, error) {
