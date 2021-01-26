@@ -5,6 +5,7 @@ import (
   "fmt"
   "strings"
   "time"
+  "regexp"
 )
 
 type V3 struct {
@@ -88,6 +89,11 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
       continue
     }
 
+    code := strings.Join(strings.Split(id, " ")[:2], " ")
+	  match := regexp.MustCompile(`\d`)
+	  index := match.FindStringIndex(code)[0]
+	  code = code[:index] + " " + code[index:]
+
     instructors := make([]string, 0)
     for _, staff := range cs.Staff {
       name := d.Staff[staff]
@@ -121,7 +127,7 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
     }
 
     courses[id] = &V3Course{
-      Code: id,
+      Code: code,
       Name: course.Title,
       SortKey: []interface{}{id},
       MutualExclusionKey: []interface{}{cs.Course},
