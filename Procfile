@@ -1,1 +1,1 @@
-web: bin/hyperschedule-server
+web: go run ./cmd/hyperschedule-server
