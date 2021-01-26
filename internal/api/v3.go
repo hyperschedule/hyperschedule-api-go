@@ -5,7 +5,18 @@ import (
   "fmt"
   "strings"
   "time"
+  "regexp"
+  "log"
 )
+
+var reCourseCode = regexp.MustCompile(fmt.Sprintf(
+  `^%s *%s *%s-%s %s$`,
+  `([A-Z]+)`,     // department id
+  `([0-9]+)`,     // course number
+  `([A-Z]+)`,     // college id
+  `(\d{2})`,      // section id
+  `([A-Z0-9]+)`,  // term code
+))
 
 type V3 struct {
 	Data  *V3CourseData `json:"data"`
@@ -88,6 +99,13 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
       continue
     }
 
+    matches := reCourseCode.FindStringSubmatch(id)
+    if matches == nil {
+      log.Printf("invalid course id: %s", id)
+      continue
+    }
+	  code := fmt.Sprintf("%s %s %s-%s", matches[1], matches[2], matches[3], matches[4])
+
     instructors := make([]string, 0)
     for _, staff := range cs.Staff {
       name := d.Staff[staff]
@@ -121,7 +139,7 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
     }
 
     courses[id] = &V3Course{
-      Code: id,
+      Code: code,
       Name: course.Title,
       SortKey: []interface{}{id},
       MutualExclusionKey: []interface{}{cs.Course},
