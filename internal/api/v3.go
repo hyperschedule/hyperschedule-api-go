@@ -6,7 +6,17 @@ import (
   "strings"
   "time"
   "regexp"
+  "log"
 )
+
+var reCourseCode = regexp.MustCompile(fmt.Sprintf(
+  `^%s *%s *%s-%s %s$`,
+  `([A-Z]+)`,     // department id
+  `([0-9]+)`,     // course number
+  `([A-Z]+)`,     // college id
+  `(\d{2})`,      // section id
+  `([A-Z0-9]+)`,  // term code
+))
 
 type V3 struct {
 	Data  *V3CourseData `json:"data"`
@@ -89,10 +99,12 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
       continue
     }
 
-    code := strings.Join(strings.Split(id, " ")[:2], " ")
-	  match := regexp.MustCompile(`\d`)
-	  index := match.FindStringIndex(code)[0]
-	  code = code[:index] + " " + code[index:]
+    matches := reCourseCode.FindStringSubmatch(id)
+    if matches == nil {
+      log.Printf("invalid course id: %s", id)
+      continue
+    }
+	  code := fmt.Sprintf("%s %s %s-%s", matches[1], matches[2], matches[3], matches[4])
 
     instructors := make([]string, 0)
     for _, staff := range cs.Staff {
