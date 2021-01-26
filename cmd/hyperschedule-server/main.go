@@ -14,11 +14,11 @@ var cmd = &cobra.Command{
 	Short: "API server for Hyperschedule",
 	Run: run,
 }
-var port int
 var uploadEmailHash string
 
 func run(cmd *cobra.Command, args []string) {
-	addr := fmt.Sprintf(":%d", port)
+	addr := fmt.Sprintf(":%s", viper.GetString("port"))
+  log.Printf("listening on %s", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("bad %v", err)
 	}
@@ -28,9 +28,9 @@ func init() {
 	http.HandleFunc("/upload/", inboundHandler)
   http.HandleFunc("/api/v3/", apiV3Handler)
 
-	cmd.Flags().IntVar(&port, "port", 8332, "HTTP port to listen on.")
-  viper.BindPFlag("port", cmd.Flags().Lookup("port"))
   viper.AutomaticEnv()
+	cmd.Flags().Int("port", 8332, "HTTP port to listen on.")
+  viper.BindPFlag("port", cmd.Flags().Lookup("port"))
 
   uploadEmailHash = os.Getenv("UPLOAD_EMAIL_HASH")
   if len(uploadEmailHash) == 0 {
@@ -39,6 +39,9 @@ func init() {
 }
 
 func main() {
+  //if err := viper.ReadInConfig(); err != nil {
+  //  log.Fatalf("failed to read config, %v", err)
+  //}
 	if err := cmd.Execute(); err != nil {
 		log.Fatalf("failed %v", err)
 	}
