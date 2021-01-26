@@ -28,8 +28,9 @@ func init() {
 	http.HandleFunc("/upload/", inboundHandler)
   http.HandleFunc("/api/v3/", apiV3Handler)
 
-	cmd.Flags().IntVar(&port, "port", 80, "HTTP port to listen on.")
+	cmd.Flags().IntVar(&port, "port", 8332, "HTTP port to listen on.")
   viper.BindPFlag("port", cmd.Flags().Lookup("port"))
+  viper.AutomaticEnv()
 
   uploadEmailHash = os.Getenv("UPLOAD_EMAIL_HASH")
   if len(uploadEmailHash) == 0 {
