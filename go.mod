@@ -1,5 +1,6 @@
 module github.com/MuddCreates/hyperschedule-api-go
 
+// +heroku goVersion go1.16
 go 1.16
 
 require (
