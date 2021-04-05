@@ -11,11 +11,11 @@ import (
 
 var reCourseCode = regexp.MustCompile(fmt.Sprintf(
 	`^%s *%s *%s-%s %s$`,
-	`([A-Z]+)`,    // department id
-	`([0-9A-Z]+)`, // course number
-	`([A-Z]{2})`,  // college id
-	`(\d{2})`,     // section id
-	`([A-Z0-9]+)`, // term code
+	`([A-Z]+)`,      // department id
+	`([0-9A-Z ]+?)`, // course number
+	`([A-Z]{2})`,    // college id
+	`(\d{2})`,       // section id
+	`([A-Z0-9]+)`,   // term code
 ))
 
 type V3 struct {
