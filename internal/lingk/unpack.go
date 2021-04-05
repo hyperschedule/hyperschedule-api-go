@@ -3,6 +3,7 @@ package lingk
 import (
 	"archive/zip"
 	"errors"
+	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsession"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsessionsection"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/course"
@@ -11,8 +12,10 @@ import (
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/sectioninstructor"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"mime/multipart"
+	"path"
 )
 
 func (t *tables) unpackCourse(r io.Reader) error {
@@ -91,7 +94,6 @@ func (t *tables) unpackers() map[string]func(r io.Reader) error {
 	}
 }
 
-
 func Unpack(fh *multipart.FileHeader) (*tables, error) {
 	f, err := fh.Open()
 	if err != nil {
@@ -106,20 +108,42 @@ func Unpack(fh *multipart.FileHeader) (*tables, error) {
 	t := &tables{}
 	unpackers := t.unpackers()
 	for _, mem := range r.File {
-    unpacker, ok := unpackers[mem.Name]
-    if !ok {
-      return nil, errors.New("unrecognized filename")
-    }
-    r, err := mem.Open()
-    defer r.Close()
-    if err != nil {
-      return nil, err
-    }
-    err = unpacker(r)
-    if err != nil {
-      return nil, err
-    }
+		unpacker, ok := unpackers[mem.Name]
+		if !ok {
+			return nil, errors.New("unrecognized filename")
+		}
+		r, err := mem.Open()
+		defer r.Close()
+		if err != nil {
+			return nil, err
+		}
+		err = unpacker(r)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-  return t, nil
+	return t, nil
+}
+
+func unpackFs(f fs.FS, dir string) (*tables, error) {
+	entries, err := fs.ReadDir(f, dir)
+	if err != nil {
+		return nil, err
+	}
+
+	t := &tables{}
+	unpackers := t.unpackers()
+	for _, mem := range entries {
+		unpacker, ok := unpackers[mem.Name()]
+		if !ok {
+			return nil, errors.New(fmt.Sprintf("unrecognized filename %s", mem.Name()))
+		}
+		file, err := f.Open(path.Join(dir, mem.Name()))
+		if err != nil {
+			return nil, err
+		}
+		unpacker(file)
+	}
+	return t, nil
 }
