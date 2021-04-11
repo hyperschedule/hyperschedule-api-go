@@ -3,7 +3,6 @@ module github.com/MuddCreates/hyperschedule-api-go
 go 1.16
 
 // +heroku goVersion go1.16
-// +heroku install -tags 'postgres' ./vendor/github.com/golang-migrate/migrate/v4/cmd/migrate .
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.14.1
