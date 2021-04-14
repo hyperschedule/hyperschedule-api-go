@@ -1,3 +1,4 @@
-DROP TABLE "course";
+DROP TABLE "course_latest";
 DROP TABLE "course_snapshot";
-DROP FUNCTION IF EXISTS course_snapshot_immut;
+DROP TABLE "course";
+DROP FUNCTION IF EXISTS course_immut;
