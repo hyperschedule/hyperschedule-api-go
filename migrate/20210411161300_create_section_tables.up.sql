@@ -2,13 +2,10 @@ CREATE TYPE "status" AS ENUM ( 'open', 'closed', 'reopened' );
 
 CREATE TABLE "section" 
 ( "id" uuid PRIMARY KEY DEFAULT gen_random_uuid()
+, "course_id" uuid NOT NULL REFERENCES "course"
 , "term_code" text NOT NULL
-, "course_code" text NOT NULL
-, "campus" text NOT NULL
 , "section" int NOT NULL
-, UNIQUE ("term_code", "course_code", "campus", "section")
-, FOREIGN KEY ("course_code", "campus") 
-  REFERENCES "course" ("code", "campus")
+, UNIQUE ("course_id", "term_code", "section")
 );
 
 CREATE TABLE "section_snapshot"

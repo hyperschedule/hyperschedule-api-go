@@ -6,9 +6,9 @@ CREATE TABLE "course"
 );
 
 CREATE TABLE "course_snapshot"
-( "course_id" NOT NULL REFERENCES "course"
+( "course_id" uuid NOT NULL REFERENCES "course"
 , "time" timestamptz NOT NULL DEFAULT now()
-, "name"        text NOT NULL
+, "name" text NOT NULL
 , "description" text NOT NULL
 , PRIMARY KEY ("course_id", "time")
 );
