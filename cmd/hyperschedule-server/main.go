@@ -36,8 +36,10 @@ func init() {
 	http.HandleFunc("/upload/", inboundHandler)
 	http.HandleFunc("/api/v3/", apiV3Handler)
 	http.HandleFunc("/raw/", rawHandler)
+	http.HandleFunc("/raw/staff/", rawStaffHandler)
 
 	viper.AutomaticEnv()
+
 	cmd.Flags().Int("port", 8332, "HTTP port to listen on.")
 	viper.BindPFlag("port", cmd.Flags().Lookup("port"))
 

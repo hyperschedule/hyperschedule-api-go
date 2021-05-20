@@ -1,4 +1,5 @@
 DROP TABLE "section_latest";
+DROP TABLE "section_delete";
 DROP TABLE "section_status";
 DROP TABLE "section_staff";
 DROP TABLE "section_schedule";

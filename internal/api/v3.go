@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -99,13 +98,12 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
 			continue
 		}
 
-		// this step should be done at load time instead of on API response time
-		matches := reCourseCode.FindStringSubmatch(id)
-		if matches == nil {
-			log.Printf("invalid course id: %s", id)
-			continue
-		}
-		code := fmt.Sprintf("%s %s %s-%s", matches[1], matches[2], matches[3], matches[4])
+		code := fmt.Sprintf("%s %s %s-%02d",
+			cs.Course.Department,
+			cs.Course.Code,
+			cs.Course.Campus,
+			cs.Section,
+		)
 
 		instructors := make([]string, 0)
 		for _, staff := range cs.Staff {
@@ -139,9 +137,9 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
 			})
 		}
 
-		courses[id] = &V3Course{
+		courses[code] = &V3Course{
 			Code:               code,
-			Name:               course.Title,
+			Name:               course.Name,
 			SortKey:            []interface{}{id},
 			MutualExclusionKey: []interface{}{cs.Course},
 			Description:        course.Description,

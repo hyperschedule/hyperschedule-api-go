@@ -11,6 +11,8 @@ import (
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/coursesectionschedule"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/sectioninstructor"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -19,7 +21,7 @@ import (
 )
 
 func (t *tables) unpackCourse(r io.Reader) error {
-	contents, err := ioutil.ReadAll(r)
+	contents, err := ioutil.ReadAll(transform.NewReader(r, charmap.Windows1252.NewDecoder()))
 	if err != nil {
 		return err
 	}
@@ -110,7 +112,7 @@ func Unpack(fh *multipart.FileHeader) (*tables, error) {
 	for _, mem := range r.File {
 		unpacker, ok := unpackers[mem.Name]
 		if !ok {
-			return nil, errors.New("unrecognized filename")
+			return nil, errors.New(fmt.Sprintf("unrecognized filename: %#v", mem.Name))
 		}
 		r, err := mem.Open()
 		defer r.Close()

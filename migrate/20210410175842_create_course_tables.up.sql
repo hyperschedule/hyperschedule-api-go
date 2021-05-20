@@ -1,15 +1,22 @@
 CREATE TABLE "course"
 ( "id" uuid PRIMARY KEY DEFAULT gen_random_uuid()
+, "department" text NOT NULL
 , "code" text NOT NULL
 , "campus" text NOT NULL
-, UNIQUE ("code", "campus")
-);
+, UNIQUE ("department", "code", "campus")
+); -- { ("MATH", "131", "HM"): "98271ce3-4471-49ce-bd97-5cb2d8424264" }
 
 CREATE TABLE "course_snapshot"
 ( "course_id" uuid NOT NULL REFERENCES "course"
 , "time" timestamptz NOT NULL DEFAULT now()
 , "name" text NOT NULL
 , "description" text NOT NULL
+, PRIMARY KEY ("course_id", "time")
+);
+
+CREATE TABLE "course_delete"
+( "course_id" uuid NOT NULL
+, "time" timestamptz NOT NULL DEFAULT now()
 , PRIMARY KEY ("course_id", "time")
 );
 
@@ -30,4 +37,8 @@ EXECUTE FUNCTION course_immut();
 
 CREATE TRIGGER "course_snapshot_immut"
 BEFORE UPDATE ON "course_snapshot"
+EXECUTE FUNCTION course_immut();
+
+CREATE TRIGGER "course_delete_immut"
+BEFORE UPDATE ON "course_delete"
 EXECUTE FUNCTION course_immut();

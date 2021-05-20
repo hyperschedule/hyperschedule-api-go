@@ -1,17 +1,18 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/davecgh/go-spew/spew"
 	"net/http"
 )
 
 func rawHandler(rw http.ResponseWriter, req *http.Request) {
-
 	data := state.GetData()
-	raw, err := json.Marshal(data)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-	}
-	rw.Header().Add("Content-Type", "application/json")
-	rw.Write(raw)
+	rw.Header().Add("Content-Type", "text/plain")
+	spew.Fdump(rw, data)
+}
+
+func rawStaffHandler(rw http.ResponseWriter, req *http.Request) {
+	data := state.GetData()
+	rw.Header().Add("Content-Type", "text/plain")
+	spew.Fdump(rw, data.Staff)
 }

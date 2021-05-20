@@ -14,6 +14,7 @@ func main() {
 		log.Fatalf("DATABASE_URL undefined")
 	}
 
+	log.Printf("running migrations")
 	m, err := migrate.New("file://migrate", dbUrl)
 	if err != nil {
 		log.Fatalf("failed to init migrate: %v", err)
@@ -26,4 +27,5 @@ func main() {
 			log.Fatalf("failed to up migrate: %v", err)
 		}
 	}
+	log.Printf("ran migrations")
 }

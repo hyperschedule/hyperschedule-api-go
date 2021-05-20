@@ -3,7 +3,7 @@ CREATE TYPE "status" AS ENUM ( 'open', 'closed', 'reopened' );
 CREATE TABLE "section" 
 ( "id" uuid PRIMARY KEY DEFAULT gen_random_uuid()
 , "course_id" uuid NOT NULL REFERENCES "course"
-, "term_code" text NOT NULL
+, "term_code" text NOT NULL REFERENCES "term"
 , "section" int NOT NULL
 , UNIQUE ("course_id", "term_code", "section")
 );
@@ -44,6 +44,12 @@ CREATE TABLE "section_status"
 , PRIMARY KEY ("section_id", "time")
 );
 
+CREATE TABLE "section_delete"
+( "section_id" uuid NOT NULL REFERENCES "section"
+, "time" timestamptz NOT NULL DEFAULT now()
+, PRIMARY KEY ("section_id", "time")
+);
+
 CREATE TABLE "section_latest"
 ( "section_id" uuid PRIMARY KEY REFERENCES "section"
 , "snapshot_time" timestamptz NOT NULL
@@ -76,4 +82,8 @@ EXECUTE FUNCTION section_immut();
 
 CREATE TRIGGER "section_status_immut" 
 BEFORE UPDATE ON "section_status"
+EXECUTE FUNCTION section_immut();
+
+CREATE TRIGGER "section_delete_immut" 
+BEFORE UPDATE ON "section_delete"
 EXECUTE FUNCTION section_immut();
