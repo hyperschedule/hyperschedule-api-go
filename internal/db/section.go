@@ -87,7 +87,7 @@ func (rows rowsSections) pushSection(h *handle) (UpdateSummary, error) {
 		return UpdateSummary{}, fmt.Errorf("failed to create `section_tmp` table: %w", err)
 	}
 
-	if _, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"section_tmp"},
+	countCopy, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"section_tmp"},
 		[]string{
 			"course_department",
 			"course_code",
@@ -100,7 +100,8 @@ func (rows rowsSections) pushSection(h *handle) (UpdateSummary, error) {
 			"seats_capacity",
 		},
 		pgx.CopyFromRows(rows.section),
-	); err != nil {
+	)
+	if err != nil {
 		return UpdateSummary{}, fmt.Errorf("failed to populate `section_tmp`: %w", err)
 	}
 
@@ -167,6 +168,7 @@ func (rows rowsSections) pushSection(h *handle) (UpdateSummary, error) {
 	}
 
 	return UpdateSummary{
+		Copied:   countCopy,
 		Upserted: tagUpsert.RowsAffected(),
 		Deleted:  tagDelete.RowsAffected(),
 	}, nil
@@ -196,7 +198,7 @@ func (rows rowsSections) pushSectionStaff(h *handle) (UpdateSummary, error) {
 		return UpdateSummary{}, fmt.Errorf("failed to create section_staff_tmp: %w", err)
 	}
 
-	if _, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"section_staff_tmp"},
+	countCopy, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"section_staff_tmp"},
 		[]string{
 			"course_department",
 			"course_code",
@@ -206,7 +208,8 @@ func (rows rowsSections) pushSectionStaff(h *handle) (UpdateSummary, error) {
 			"staff_lingk_id",
 		},
 		pgx.CopyFromRows(rows.sectionStaff),
-	); err != nil {
+	)
+	if err != nil {
 		return UpdateSummary{}, fmt.Errorf("failed to populate section_staff_tmp: %w", err)
 	}
 
@@ -254,6 +257,7 @@ func (rows rowsSections) pushSectionStaff(h *handle) (UpdateSummary, error) {
 	}
 
 	return UpdateSummary{
+		Copied:   countCopy,
 		Upserted: tagUpsert.RowsAffected(),
 		Deleted:  tagDelete.RowsAffected(),
 	}, nil
@@ -288,7 +292,7 @@ func (rows rowsSections) pushSectionSchedule(h *handle) (UpdateSummary, error) {
 		return UpdateSummary{}, fmt.Errorf("failed to create section_schedule_tmp: %w", err)
 	}
 
-	if _, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"section_schedule_tmp"},
+	countCopy, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"section_schedule_tmp"},
 		[]string{
 			"course_department",
 			"course_code",
@@ -301,7 +305,8 @@ func (rows rowsSections) pushSectionSchedule(h *handle) (UpdateSummary, error) {
 			"location",
 		},
 		pgx.CopyFromRows(rows.sectionSchedule),
-	); err != nil {
+	)
+	if err != nil {
 		return UpdateSummary{}, fmt.Errorf("failed to populate section_schedule_tmp: %w", err)
 	}
 
@@ -371,6 +376,7 @@ func (rows rowsSections) pushSectionSchedule(h *handle) (UpdateSummary, error) {
 	}
 
 	return UpdateSummary{
+		Copied:   countCopy,
 		Upserted: tagUpsert.RowsAffected(),
 		Deleted:  tagDelete.RowsAffected(),
 	}, nil

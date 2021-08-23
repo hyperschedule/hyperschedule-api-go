@@ -6,11 +6,7 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-type updateInfoTerm struct {
-	Upserted int64
-}
-
-func (h *handle) updateTerms(terms map[string]*data.Term) (*updateInfoTerm, error) {
+func (h *handle) updateTerms(terms map[string]*data.Term) (UpdateSummary, error) {
 	rows := [][]interface{}{}
 	for code, term := range terms {
 		rows = append(rows, []interface{}{
@@ -22,45 +18,47 @@ func (h *handle) updateTerms(terms map[string]*data.Term) (*updateInfoTerm, erro
     CREATE TEMPORARY TABLE "term_tmp"
     ( "code"       text PRIMARY KEY
     , "semester"   text NOT NULL
-    , "start_date" date NOT NULL
-    , "end_date"   date NOT NULL
+    , "date_start" date NOT NULL
+    , "date_end"   date NOT NULL
     )
     ON COMMIT DROP;
   `); err != nil {
-		return nil, fmt.Errorf("failed to create `term_tmp` table: %w", err)
+		return UpdateSummary{}, fmt.Errorf("failed to create `term_tmp` table: %w", err)
 	}
 
-	if _, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"term_tmp"},
-		[]string{"code", "semester", "start_date", "end_date"},
+	countCopy, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"term_tmp"},
+		[]string{"code", "semester", "date_start", "date_end"},
 		pgx.CopyFromRows(rows),
-	); err != nil {
-		return nil, fmt.Errorf("failed to populate `term_tmp` table: %w", err)
+	)
+	if err != nil {
+		return UpdateSummary{}, fmt.Errorf("failed to populate `term_tmp` table: %w", err)
 	}
 
 	tag, err := h.tx.Exec(h.ctx, `
-    INSERT INTO "term" ( "code", "semester", "start_date", "end_date" )
-    SELECT "code", "semester", "start_date", "end_date"
+    INSERT INTO "term" ( "code", "semester", "date_start", "date_end" )
+    SELECT "code", "semester", "date_start", "date_end"
     FROM "term_tmp"
     ON CONFLICT ("code") DO UPDATE SET
         "semester" = EXCLUDED."semester"
-      , "start_date" = EXCLUDED."start_date"
-      , "end_date" = EXCLUDED."end_date"
+      , "date_start" = EXCLUDED."date_start"
+      , "date_end" = EXCLUDED."date_end"
     WHERE
       ( "term"."semester"
-      , "term"."start_date"
-      , "term"."end_date"
+      , "term"."date_start"
+      , "term"."date_end"
       )
       <>
       ( EXCLUDED."semester"
-      , EXCLUDED."start_date"
-      , EXCLUDED."end_date"
+      , EXCLUDED."date_start"
+      , EXCLUDED."date_end"
       );
   `)
 	if err != nil {
-		return nil, fmt.Errorf("failed to upsert `term` entries: %w", err)
+		return UpdateSummary{}, fmt.Errorf("failed to upsert `term` entries: %w", err)
 	}
 
-	return &updateInfoTerm{
+	return UpdateSummary{
+		Copied:   countCopy,
 		Upserted: tag.RowsAffected(),
 	}, nil
 }

@@ -8,10 +8,16 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+type UpdateSummary struct {
+	Copied   int64
+	Upserted int64
+	Deleted  int64
+}
+
 type UpdateSummaries struct {
-	Course  *updateInfoCourse
-	Term    *updateInfoTerm
-	Staff   *updateInfoStaff
+	Course  UpdateSummary
+	Term    UpdateSummary
+	Staff   UpdateSummary
 	Section UpdateSummariesSections
 }
 

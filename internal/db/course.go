@@ -6,12 +6,7 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-type updateInfoCourse struct {
-	Upserted int64
-	Deleted  int64
-}
-
-func (h *handle) updateCourses(courses map[data.CourseKey]*data.Course) (*updateInfoCourse, error) {
+func (h *handle) updateCourses(courses map[data.CourseKey]*data.Course) (UpdateSummary, error) {
 	rows := make([][]interface{}, 0, len(courses))
 	for key, course := range courses {
 		rows = append(rows, []interface{}{
@@ -34,14 +29,15 @@ func (h *handle) updateCourses(courses map[data.CourseKey]*data.Course) (*update
     )
     ON COMMIT DROP;
   `); err != nil {
-		return nil, fmt.Errorf("failed to create course_tmp table: %w", err)
+		return UpdateSummary{}, fmt.Errorf("failed to create course_tmp table: %w", err)
 	}
 
-	if _, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"course_tmp"},
+	countCopy, err := h.tx.CopyFrom(h.ctx, pgx.Identifier{"course_tmp"},
 		[]string{"department", "code", "campus", "name", "description"},
 		pgx.CopyFromRows(rows),
-	); err != nil {
-		return nil, fmt.Errorf("failed to populate course_tmp table: %w", err)
+	)
+	if err != nil {
+		return UpdateSummary{}, fmt.Errorf("failed to populate course_tmp table: %w", err)
 	}
 
 	tagUpsert, err := h.tx.Exec(h.ctx, `
@@ -69,7 +65,7 @@ func (h *handle) updateCourses(courses map[data.CourseKey]*data.Course) (*update
       OR "course"."deleted_at" IS NOT NULL;
   `)
 	if err != nil {
-		return nil, fmt.Errorf("failed to upsert course entries: %w", err)
+		return UpdateSummary{}, fmt.Errorf("failed to upsert course entries: %w", err)
 	}
 
 	tagDelete, err := h.tx.Exec(h.ctx, `
@@ -84,10 +80,11 @@ func (h *handle) updateCourses(courses map[data.CourseKey]*data.Course) (*update
       AND "deleted_at" IS NULL
   `)
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete old course entries: %w", err)
+		return UpdateSummary{}, fmt.Errorf("failed to delete old course entries: %w", err)
 	}
 
-	return &updateInfoCourse{
+	return UpdateSummary{
+		Copied:   countCopy,
 		Upserted: tagUpsert.RowsAffected(),
 		Deleted:  tagDelete.RowsAffected(),
 	}, nil
