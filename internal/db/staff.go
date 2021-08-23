@@ -27,7 +27,7 @@ func updateStaff(h *handle, staff map[string]data.Name) (*updateInfoStaff, error
       ON CONFLICT ("lingk_id") DO UPDATE SET
         "first_name" = EXCLUDED."first_name"
       , "last_name" = EXCLUDED."last_name"
-      WHERE 
+      WHERE
         "staff"."first_name" <> EXCLUDED."first_name"
         OR "staff"."last_name" <> EXCLUDED."last_name"
     `,

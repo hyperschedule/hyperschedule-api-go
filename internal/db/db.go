@@ -8,11 +8,11 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type UpdateInfo struct {
+type UpdateSummaries struct {
 	Course  *updateInfoCourse
 	Term    *updateInfoTerm
 	Staff   *updateInfoStaff
-	Section *updateInfoSection
+	Section UpdateSummariesSections
 }
 
 type Connection struct {
@@ -32,7 +32,7 @@ func New(ctx context.Context, addr string) (*Connection, error) {
 	return &Connection{db}, nil
 }
 
-func (conn *Connection) Update(ctx context.Context, d *data.Data) (*UpdateInfo, error) {
+func (conn *Connection) Update(ctx context.Context, d *data.Data) (*UpdateSummaries, error) {
 	tx, err := conn.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -40,11 +40,11 @@ func (conn *Connection) Update(ctx context.Context, d *data.Data) (*UpdateInfo, 
 	defer tx.Rollback(ctx)
 	handle := &handle{tx, ctx}
 
-	termInfo, err := updateTerms(handle, d.Terms)
+	termInfo, err := handle.updateTerms(d.Terms)
 	if err != nil {
 		return nil, fmt.Errorf("update terms failed: %w", err)
 	}
-	courseInfo, err := updateCourses(handle, d.Courses)
+	courseInfo, err := handle.updateCourses(d.Courses)
 	if err != nil {
 		return nil, fmt.Errorf("update courses failed: %w", err)
 	}
@@ -52,7 +52,7 @@ func (conn *Connection) Update(ctx context.Context, d *data.Data) (*UpdateInfo, 
 	if err != nil {
 		return nil, fmt.Errorf("update staff failed: %w", err)
 	}
-	sectionInfo, err := updateSections(handle, d.CourseSections)
+	sectionInfo, err := handle.updateSections(d.CourseSections)
 	if err != nil {
 		return nil, fmt.Errorf("update section failed: %w", err)
 	}
@@ -61,7 +61,7 @@ func (conn *Connection) Update(ctx context.Context, d *data.Data) (*UpdateInfo, 
 		return nil, err
 	}
 
-	return &UpdateInfo{
+	return &UpdateSummaries{
 		Term:    termInfo,
 		Course:  courseInfo,
 		Staff:   staffInfo,

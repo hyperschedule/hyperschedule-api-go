@@ -1,3 +1,5 @@
+set positional-arguments
+
 dev_postgres_password := 'cool orange banana peels'
 dev_upload_email := 'dev@api.hyperschedule.io'
 
@@ -14,8 +16,8 @@ dev *args:
 pgcli:
   pgcli "$DB_URL"
 
-migrate:
-  migrate -path 'migrate' -database "$DB_URL?sslmode=disable" up
+migrate *args:
+  migrate -path 'migrate' -database "$DB_URL?sslmode=disable" "$@"
 
 upload path:
   zip -qj - '{{path}}'/* \

@@ -3,6 +3,7 @@ package lingk
 import (
 	"embed"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
+	_ "log"
 	"mime/multipart"
 )
 
@@ -15,7 +16,11 @@ func FromAttachment(fh *multipart.FileHeader) (*data.Data, error) {
 		return nil, err
 	}
 
-	d, _ := t.prune()
+	d, errs := t.prune()
+	_ = errs
+	//for _, err := range errs {
+	//	log.Printf("warning: %v", err)
+	//}
 
 	return d, nil
 }

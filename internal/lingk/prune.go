@@ -2,11 +2,17 @@ package lingk
 
 import (
 	"errors"
+	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsession"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/course"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
 )
+
+type courseSectionScheduleKey struct {
+	sectionId string
+	schedule  data.Schedule
+}
 
 func (t *tables) prune() (*data.Data, []error) {
 	p := &data.Data{
@@ -69,16 +75,30 @@ func (t *tables) prune() (*data.Data, []error) {
 		csTerms[c.CourseSectionId] = c.Id
 	}
 
+	csScheduleSeen := make(map[courseSectionScheduleKey]struct{})
 	csSchedule := make(map[string][]*data.Schedule)
 	for _, c := range t.courseSectionSchedule {
-		csSchedule[c.CourseSectionId] = append(csSchedule[c.CourseSectionId], &data.Schedule{
+		schedule := data.Schedule{
 			Days:     c.Days,
 			Start:    c.Start,
 			End:      c.End,
 			Location: c.Location,
-		})
+		}
+		key := courseSectionScheduleKey{c.CourseSectionId, schedule}
+
+		if _, ok := csScheduleSeen[key]; ok {
+			errs = append(errs, fmt.Errorf(
+				"coursesectionschedule contains duplicate entries: [%s] %s %s--%s @ %s",
+				c.CourseSectionId, c.Days, c.Start, c.End, c.Location,
+			))
+			continue
+		}
+
+		csSchedule[c.CourseSectionId] = append(csSchedule[c.CourseSectionId], &schedule)
+		csScheduleSeen[key] = struct{}{}
 	}
 
+	csStaffSeen := make(map[string]map[string]struct{})
 	csStaff := make(map[string][]string)
 	for _, s := range t.sectionInstructor {
 		st, ok := staff[s.StaffId]
@@ -91,7 +111,21 @@ func (t *tables) prune() (*data.Data, []error) {
 			p.Staff[s.StaffId] = data.Name{First: st.First, Last: st.Last}
 		}
 
+		seen, ok := csStaffSeen[s.CourseSectionId]
+		if !ok {
+			seen = make(map[string]struct{})
+			csStaffSeen[s.CourseSectionId] = seen
+		}
+
+		if _, ok := seen[s.StaffId]; ok {
+			errs = append(errs, fmt.Errorf(
+				"sectioninstructor contains duplicate entries for %s, %s",
+				s.CourseSectionId, s.StaffId,
+			))
+			continue
+		}
 		csStaff[s.CourseSectionId] = append(csStaff[s.CourseSectionId], s.StaffId)
+		csStaffSeen[s.CourseSectionId][s.StaffId] = struct{}{}
 	}
 
 	for _, cs := range t.courseSection {
@@ -103,7 +137,7 @@ func (t *tables) prune() (*data.Data, []error) {
 
 		termId, ok := csTerms[cs.Id]
 		if !ok {
-			errs = append(errs, errors.New("coursesection has no calendarsessionsection entry"))
+			errs = append(errs, fmt.Errorf("coursesection has no calendarsessionsection entry: %#v", cs.Id))
 			continue
 		}
 
@@ -134,7 +168,7 @@ func (t *tables) prune() (*data.Data, []error) {
 			Section: cs.Section,
 		}
 		if _, ok := p.CourseSections[sectionKey]; ok {
-			errs = append(errs, errors.New("dup coursesection key"))
+			errs = append(errs, fmt.Errorf("coursesection duplicate key: %v", sectionKey))
 		}
 
 		if _, ok := sectionIds[cs.Id]; ok {

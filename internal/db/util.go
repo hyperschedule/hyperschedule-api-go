@@ -6,6 +6,11 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
+type UpdateSummary struct {
+	Upserted int64
+	Deleted  int64
+}
+
 type batchOpts struct {
 	tmpName         string
 	tmpCols         []string
