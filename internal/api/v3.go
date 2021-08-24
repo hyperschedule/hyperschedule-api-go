@@ -3,19 +3,10 @@ package api
 import (
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
-	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
-
-var reCourseCode = regexp.MustCompile(fmt.Sprintf(
-	`^%s *%s *%s-%s %s$`,
-	`([A-Z]+)`,      // department id
-	`([0-9A-Z ]+?)`, // course number
-	`([A-Z]{2})`,    // college id
-	`(\d{2})`,       // section id
-	`([A-Z0-9]+)`,   // term code
-))
 
 type V3 struct {
 	Data  *V3CourseData `json:"data"`
@@ -105,11 +96,12 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
 			cs.Section,
 		)
 
-		instructors := make([]string, 0)
-		for _, staff := range cs.Staff {
+		instructors := make([]string, len(cs.Staff))
+		for i, staff := range cs.Staff {
 			name := d.Staff[staff]
-			instructors = append(instructors, fmt.Sprintf("%s %s", name.First, name.Last))
+			instructors[i] = fmt.Sprintf("%s %s", name.First, name.Last)
 		}
+		sort.StringSlice(instructors).Sort()
 
 		// these are dirty hacks, fix
 		termCount := 1
@@ -136,12 +128,17 @@ func MakeV3Courses(d *data.Data) map[string]*V3Course {
 				Location:  sched.Location,
 			})
 		}
+		sort.Slice(schedule, func(i, j int) bool {
+			return v3ScheduleLess(schedule[i], schedule[j])
+		})
 
 		courses[code] = &V3Course{
-			Code:               code,
-			Name:               course.Name,
-			SortKey:            []interface{}{id},
-			MutualExclusionKey: []interface{}{cs.Course},
+			Code: code,
+			Name: course.Name,
+			SortKey: []interface{}{
+				fmt.Sprintf("%s-%02d", id.Course.String(), id.Section),
+			},
+			MutualExclusionKey: []interface{}{cs.Course.String()},
 			Description:        course.Description,
 			Instructors:        instructors,
 			Term:               cs.Term,
