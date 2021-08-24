@@ -9,8 +9,10 @@ setup:
   podman pod rm -if hyperschedule-dev
   podman play kube dev-pod.yml
 
-dev *args:
+pod:
   podman pod start hyperschedule-dev
+
+dev *args:
   go run ./cmd/hyperschedule-server {{args}}
 
 pgcli:
