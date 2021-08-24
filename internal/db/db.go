@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -23,6 +24,37 @@ type UpdateSummaries struct {
 
 type Connection struct {
 	db *pgxpool.Pool
+}
+
+type Tx struct {
+	tx  pgx.Tx
+	ctx context.Context
+}
+
+func (conn *Connection) Begin(ctx context.Context) (*Tx, error) {
+	tx, err := conn.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &Tx{tx, ctx}, nil
+}
+
+func (tx *Tx) Cleanup() error {
+	return tx.tx.Rollback(tx.ctx)
+}
+
+func (tx *Tx) Exec(q string, args ...interface{}) (pgconn.CommandTag, error) {
+	return tx.tx.Exec(tx.ctx, q, args...)
+}
+
+func (tx *Tx) Query(q string, args ...interface{}) (pgx.Rows, error) {
+	return tx.tx.Query(tx.ctx, q, args...)
+}
+
+func (tx *Tx) CopyFrom(
+	tbl pgx.Identifier, cols []string, rows pgx.CopyFromSource,
+) (int64, error) {
+	return tx.tx.CopyFrom(tx.ctx, tbl, cols, rows)
 }
 
 type handle struct {
