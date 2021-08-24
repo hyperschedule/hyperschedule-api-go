@@ -17,24 +17,31 @@ func v3ScheduleLess(s1, s2 *V3Schedule) bool {
 }
 
 func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
-	rowsLatest, err := tx.Query(`
-    SELECT "semester" FROM "term"
-    ORDER BY "date_end" DESC, "date_start" ASC
-    LIMIT 1;
-  `)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve latest semester: %w", err)
-	}
-	defer rowsLatest.Close()
-	if !rowsLatest.Next() {
-		// should not occur
-		return nil, fmt.Errorf("no semesters found :(")
-	}
-	var semester string
-	if err := rowsLatest.Scan(&semester); err != nil {
-		return nil, fmt.Errorf("failed to read latest semester: %w", err)
-	}
-	rowsLatest.Close()
+	semester := "FA2021"
+
+	// we get very early preview data, which means the "latest" detected semester
+	// might actually be SP2022 when we want FA2021, so for now this
+	// detect-latest thing, while smart, isn't what we want, and I can't think of
+	// anything much better than hard-code the "current" semester
+
+	//rowsLatest, err := tx.Query(`
+	//  SELECT "semester" FROM "term"
+	//  ORDER BY "date_end" DESC, "date_start" ASC
+	//  LIMIT 1;
+	//`)
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to retrieve latest semester: %w", err)
+	//}
+	//defer rowsLatest.Close()
+	//if !rowsLatest.Next() {
+	//	// should not occur
+	//	return nil, fmt.Errorf("no semesters found :(")
+	//}
+	//var semester string
+	//if err := rowsLatest.Scan(&semester); err != nil {
+	//	return nil, fmt.Errorf("failed to read latest semester: %w", err)
+	//}
+	//rowsLatest.Close()
 
 	rowsCourses, err := tx.Query(`
     SELECT

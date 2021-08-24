@@ -23,8 +23,6 @@ func getIp(req *http.Request) string {
 }
 
 func (ctx *Context) apiV3Handler(resp http.ResponseWriter, req *http.Request) {
-	log.Printf("API: received request from %s", getIp(req))
-
 	data := ctx.oldState.GetData()
 	if data == nil {
 		log.Printf("received api request before loaded")
@@ -44,8 +42,6 @@ func (ctx *Context) apiV3Handler(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (ctx *Context) apiV3NewHandler(resp http.ResponseWriter, req *http.Request) {
-	log.Printf("API: received request from %s", getIp(req))
-
 	tx, err := ctx.dbConn.Begin(req.Context())
 	if err != nil {
 		log.Printf("API: failed to initiate db transaction: %v", err)
