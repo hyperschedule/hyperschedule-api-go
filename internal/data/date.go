@@ -90,3 +90,7 @@ func (d Date) String() string {
 func (d Date) ToTime() time.Time {
 	return time.Date(d.Year, time.Month(d.Month), d.Day, 0, 0, 0, 0, time.UTC)
 }
+
+func DateFromStdTime(t time.Time) Date {
+	return Date{Year: t.Year(), Month: int(t.Month()), Day: int(t.Day())}
+}

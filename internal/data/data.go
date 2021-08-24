@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"sort"
 )
 
@@ -10,10 +11,18 @@ type CourseKey struct {
 	Campus     string
 }
 
+func (k CourseKey) String() string {
+	return fmt.Sprintf("%s %s %s", k.Department, k.Code, k.Campus)
+}
+
 type SectionKey struct {
 	Course  CourseKey
 	Term    string
 	Section int
+}
+
+func (k SectionKey) String() string {
+	return fmt.Sprintf("%s-%02d %s", k.Course, k.Section, k.Term)
 }
 
 type Data struct {
