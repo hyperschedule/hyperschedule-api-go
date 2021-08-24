@@ -27,3 +27,9 @@ upload path:
     -F 'envelope={"from": "", "to": ["{{dev_upload_email}}"]}' \
     -F 'x=@-;filename=HMCarchive.zip' \
     'localhost:8332/upload/'
+
+prod-migrate *args:
+  migrate -path 'migrate' -database "$(heroku config:get 'DB_URL')" "$@"
+
+prod-pgcli:
+  pgcli "$(heroku config:get 'DB_URL')"
