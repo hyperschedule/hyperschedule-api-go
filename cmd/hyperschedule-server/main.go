@@ -1,59 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	//"fmt"
+	//"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
+	"github.com/alecthomas/kong"
 	"log"
-	"net/http"
-	"os"
+	//"net/http"
 )
 
-var cmd = &cobra.Command{
-	Use:   "hyperschedule-server",
-	Short: "API server for Hyperschedule",
-	Run:   run,
+type Cmd struct {
+	Port            uint16 `help:"HTTP port to listen on" default:"8332" env:"PORT"`
+	DbUrl           string `help:"URL of PostgreSQL database" env:"DB_URL"`
+	UploadEmailHash string `help:"SHA256 hash of authorized uploader email" required:"true" env:"UPLOAD_EMAIL_HASH"`
 }
-var uploadEmailHash string
 
-func run(cmd *cobra.Command, args []string) {
-	log.Printf("loading initial data")
-	data, err := lingk.Sample()
+func (c *Cmd) Run() error {
+	srv, err := c.NewServer()
 	if err != nil {
-		log.Fatalf("failed to load: %v", err)
+		return err
 	}
-	state.SetData(data)
 
-	addr := fmt.Sprintf(":%s", viper.GetString("port"))
-	log.Printf("listening on %s", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("bad %v", err)
+	if err := srv.Run(); err != nil {
+		return err
 	}
-}
 
-func init() {
-	http.HandleFunc("/upload/", inboundHandler)
-	http.HandleFunc("/api/v3/", apiV3Handler)
-	http.HandleFunc("/raw/", rawHandler)
-	http.HandleFunc("/raw/staff/", rawStaffHandler)
-
-	viper.AutomaticEnv()
-
-	cmd.Flags().Int("port", 8332, "HTTP port to listen on.")
-	viper.BindPFlag("port", cmd.Flags().Lookup("port"))
-
-	uploadEmailHash = os.Getenv("UPLOAD_EMAIL_HASH")
-	if len(uploadEmailHash) == 0 {
-		log.Printf("warning: did not define UPLOAD_EMAIL_HASH")
-	}
+	return nil
 }
 
 func main() {
-	//if err := viper.ReadInConfig(); err != nil {
-	//  log.Fatalf("failed to read config, %v", err)
-	//}
-	if err := cmd.Execute(); err != nil {
-		log.Fatalf("failed %v", err)
+	cli := Cmd{}
+	kong.Parse(&cli)
+	if err := cli.Run(); err != nil {
+		log.Fatalf("failed: %v", err)
 	}
 }

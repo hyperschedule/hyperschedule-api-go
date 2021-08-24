@@ -5,9 +5,10 @@ go 1.16
 // +heroku goVersion go1.16
 
 require (
+	github.com/alecthomas/kong v0.2.17
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang-migrate/migrate/v4 v4.14.1
-	github.com/jackc/pgconn v1.8.1
+	github.com/jackc/pgconn v1.8.1 // indirect
 	github.com/jackc/pgtype v1.7.0
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/kr/pretty v0.1.0

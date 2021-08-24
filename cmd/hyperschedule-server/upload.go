@@ -55,22 +55,24 @@ func parseEmail(req *http.Request) (*LingkEmail, error) {
 	}, nil
 }
 
-func validateEmail(email *LingkEmail) error {
+func validateEmail(email *LingkEmail, uploaderHash string) error {
 	if len(email.Envelope.To) != 1 {
 		return errors.New("wrong number of email tos")
 	}
 
 	to := email.Envelope.To[0]
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(to)))
-	if hash != uploadEmailHash {
-		log.Printf("expected %s, got %s (pre-hash %s)", uploadEmailHash, hash[:], to)
-		return errors.New("hash mismatch, get rekt")
+	if hash != uploaderHash {
+		return fmt.Errorf(
+			"unauthorized uploader hash: expected %s, got %s (email %s)",
+			uploaderHash, hash[:], to,
+		)
 	}
 
 	return nil
 }
 
-func inboundHandler(resp http.ResponseWriter, req *http.Request) {
+func (ctx *Context) inboundHandler(resp http.ResponseWriter, req *http.Request) {
 	log.Printf(
 		"UPLOAD: request from %s (forwarded from %s)",
 		req.RemoteAddr,
@@ -86,7 +88,7 @@ func inboundHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := validateEmail(email); err != nil {
+	if err := validateEmail(email, ctx.uploaderHash); err != nil {
 		log.Printf("UPLOAD: wrong target email (unauthorized), %v", err)
 		resp.WriteHeader(http.StatusUnauthorized)
 		resp.Write([]byte("nice try"))
@@ -107,7 +109,7 @@ func inboundHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 	pretty.Logf("update info: %# v", updateInfo)
 
-	state.SetData(data)
+	ctx.oldState.SetData(data)
 
 	log.Printf("UPLOAD: successfully parsed email")
 	resp.WriteHeader(http.StatusOK)
