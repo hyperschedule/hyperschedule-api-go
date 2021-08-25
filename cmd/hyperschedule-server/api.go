@@ -9,8 +9,8 @@ import (
 
 func (ctx *Context) apiHandler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v3", ctx.apiV3Handler)
-	mux.HandleFunc("/v3-new", ctx.apiV3NewHandler)
+	mux.HandleFunc("/v3/courses", ctx.apiV3Handler)
+	mux.HandleFunc("/v3-new/courses", ctx.apiV3NewHandler)
 	return mux
 }
 
