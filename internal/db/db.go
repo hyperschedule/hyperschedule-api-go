@@ -39,6 +39,10 @@ func (conn *Connection) Begin(ctx context.Context) (*Tx, error) {
 	return &Tx{tx, ctx}, nil
 }
 
+func (conn *Connection) Batch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
+	return conn.db.SendBatch(ctx, b)
+}
+
 func (tx *Tx) Cleanup() error {
 	return tx.tx.Rollback(tx.ctx)
 }

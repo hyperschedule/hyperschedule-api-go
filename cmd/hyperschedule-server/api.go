@@ -42,21 +42,12 @@ func (ctx *Context) apiV3Handler(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (ctx *Context) apiV3NewHandler(resp http.ResponseWriter, req *http.Request) {
-	tx, err := ctx.dbConn.Begin(req.Context())
-	if err != nil {
-		log.Printf("API: failed to initiate db transaction: %v", err)
-		resp.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer tx.Cleanup()
-
-	data, err := api.FetchV3(tx)
+	data, err := api.FetchV3(req.Context(), ctx.dbConn)
 	if err != nil {
 		log.Printf("API: failed to retrieve data from db: %v", err)
 		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	tx.Cleanup()
 
 	output, err := json.Marshal(data)
 	if err != nil {

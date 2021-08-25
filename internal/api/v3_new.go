@@ -1,9 +1,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/db"
+	"github.com/jackc/pgx/v4"
 	"sort"
 	"strings"
 	"time"
@@ -16,7 +18,7 @@ func v3ScheduleLess(s1, s2 *V3Schedule) bool {
 				s1.Location <= s2.Location))
 }
 
-func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
+func FetchV3(ctx context.Context, tx *db.Connection) (*V3, error) {
 	semester := "FA2021"
 
 	// we get very early preview data, which means the "latest" detected semester
@@ -43,7 +45,11 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
 	//}
 	//rowsLatest.Close()
 
-	rowsCourses, err := tx.Query(`
+	batch := &pgx.Batch{}
+
+	batch.Queue(`SELECT "code", "semester" FROM "term"`)
+
+	batch.Queue(`
     SELECT
       "course"."department"
     , "course"."code"
@@ -61,6 +67,67 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
     JOIN "term" ON "term"."code" = "section"."term_code"
     WHERE "term"."semester" = $1 AND "section"."deleted_at" IS NULL
   `, semester)
+
+	batch.Queue(`
+    SELECT
+      "course"."department"
+      || ' ' || "course"."code"
+      || ' ' || "course"."campus"
+      || '-' || to_char("section"."section", 'FM00')
+    , "staff"."first_name" || ' ' || "staff"."last_name"
+    FROM "section_staff"
+    JOIN "staff" ON "staff"."id" = "section_staff"."staff_id"
+    JOIN "section" ON "section"."id" = "section_staff"."section_id"
+    JOIN "course" ON "course"."id" = "section"."course_id"
+    JOIN "term" ON "term"."code" = "section"."term_code"
+    WHERE "term"."semester" = $1 AND "section_staff"."deleted_at" IS NULL
+  `, semester)
+
+	batch.Queue(`
+    SELECT
+      "course"."department"
+      || ' ' || "course"."code"
+      || ' ' || "course"."campus"
+      || '-' || to_char("section"."section", 'FM00')
+    , "section_schedule"."days"
+    , "section_schedule"."time_start"
+    , "section_schedule"."time_end"
+    , "section_schedule"."location"
+    , "term"."code"
+    , "term"."semester"
+    , "term"."date_start"
+    , "term"."date_end"
+    FROM "section_schedule"
+    JOIN "section" ON "section"."id" = "section_schedule"."section_id"
+    JOIN "course" ON "course"."id" = "section"."course_id"
+    JOIN "term" ON "term"."code" = "section"."term_code"
+    WHERE "term"."semester" = $1 AND "section_schedule"."deleted_at" IS NULL
+  `, semester)
+
+	results := tx.Batch(ctx, batch)
+	defer results.Close()
+
+	rowsTerms, err := results.Query()
+	if err != nil {
+		return nil, fmt.Errorf("failed to query terms: %w", err)
+	}
+	defer rowsTerms.Close()
+
+	terms := make(map[string]*V3Term)
+	for rowsTerms.Next() {
+		var code, semester string
+		if err := rowsTerms.Scan(&code, &semester); err != nil {
+			return nil, fmt.Errorf("failed to scan term row: %w", err)
+		}
+		terms[code] = &V3Term{
+			Code:    code,
+			SortKey: []interface{}{code, semester},
+			Name:    semester,
+		}
+	}
+	rowsTerms.Close()
+
+	rowsCourses, err := results.Query()
 	if err != nil {
 		return nil, err
 	}
@@ -122,20 +189,7 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
 	}
 	rowsCourses.Close()
 
-	rowsInstructors, err := tx.Query(`
-    SELECT
-      "course"."department"
-      || ' ' || "course"."code"
-      || ' ' || "course"."campus"
-      || '-' || to_char("section"."section", 'FM00')
-    , "staff"."first_name" || ' ' || "staff"."last_name"
-    FROM "section_staff"
-    JOIN "staff" ON "staff"."id" = "section_staff"."staff_id"
-    JOIN "section" ON "section"."id" = "section_staff"."section_id"
-    JOIN "course" ON "course"."id" = "section"."course_id"
-    JOIN "term" ON "term"."code" = "section"."term_code"
-    WHERE "term"."semester" = $1 AND "section_staff"."deleted_at" IS NULL
-  `, semester)
+	rowsInstructors, err := results.Query()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query instructors: %w", err)
 	}
@@ -159,26 +213,7 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
 	}
 	rowsInstructors.Close()
 
-	rowsSchedules, err := tx.Query(`
-    SELECT
-      "course"."department"
-      || ' ' || "course"."code"
-      || ' ' || "course"."campus"
-      || '-' || to_char("section"."section", 'FM00')
-    , "section_schedule"."days"
-    , "section_schedule"."time_start"
-    , "section_schedule"."time_end"
-    , "section_schedule"."location"
-    , "term"."code"
-    , "term"."semester"
-    , "term"."date_start"
-    , "term"."date_end"
-    FROM "section_schedule"
-    JOIN "section" ON "section"."id" = "section_schedule"."section_id"
-    JOIN "course" ON "course"."id" = "section"."course_id"
-    JOIN "term" ON "term"."code" = "section"."term_code"
-    WHERE "term"."semester" = $1 AND "section_schedule"."deleted_at" IS NULL
-  `, semester)
+	rowsSchedules, err := results.Query()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query section schedules: %w", err)
 	}
@@ -249,47 +284,6 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
 		sort.Slice(course.Schedule, func(i, j int) bool {
 			return v3ScheduleLess(course.Schedule[i], course.Schedule[j])
 		})
-	}
-
-	return courses, nil
-}
-
-func fetchV3Terms(tx *db.Tx) (map[string]*V3Term, error) {
-	rows, err := tx.Query(`SELECT "code", "semester" FROM "term"`)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query terms: %w", err)
-	}
-	defer rows.Close()
-
-	terms := make(map[string]*V3Term)
-	for rows.Next() {
-		var code, semester string
-		if err := rows.Scan(&code, &semester); err != nil {
-			return nil, fmt.Errorf("failed to scan term row: %w", err)
-		}
-		terms[code] = &V3Term{
-			Code:    code,
-			SortKey: []interface{}{code, semester},
-			Name:    semester,
-		}
-	}
-
-	// technically not needed thanks to earlier `defer rows.Close()`, but good to
-	// do anyway for consistency
-	rows.Close()
-
-	return terms, nil
-}
-
-func FetchV3(tx *db.Tx) (*V3, error) {
-	terms, err := fetchV3Terms(tx)
-	if err != nil {
-		return nil, err
-	}
-
-	courses, err := fetchV3Courses(tx)
-	if err != nil {
-		return nil, err
 	}
 
 	return &V3{
