@@ -59,7 +59,7 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
     FROM "section"
     JOIN "course" ON "course"."id" = "section"."course_id"
     JOIN "term" ON "term"."code" = "section"."term_code"
-    WHERE "term"."semester" = $1
+    WHERE "term"."semester" = $1 AND "section"."deleted_at" IS NULL
   `, semester)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
     JOIN "section" ON "section"."id" = "section_staff"."section_id"
     JOIN "course" ON "course"."id" = "section"."course_id"
     JOIN "term" ON "term"."code" = "section"."term_code"
-    WHERE "term"."semester" = $1
+    WHERE "term"."semester" = $1 AND "section_staff"."deleted_at" IS NULL
   `, semester)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query instructors: %w", err)
@@ -177,7 +177,7 @@ func fetchV3Courses(tx *db.Tx) (map[string]*V3Course, error) {
     JOIN "section" ON "section"."id" = "section_schedule"."section_id"
     JOIN "course" ON "course"."id" = "section"."course_id"
     JOIN "term" ON "term"."code" = "section"."term_code"
-    WHERE "term"."semester" = $1
+    WHERE "term"."semester" = $1 AND "section_schedule"."deleted_at" IS NULL
   `, semester)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query section schedules: %w", err)
