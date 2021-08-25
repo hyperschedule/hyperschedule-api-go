@@ -48,6 +48,7 @@ func (ctx *Context) apiV3NewHandler(resp http.ResponseWriter, req *http.Request)
 		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer tx.Cleanup()
 
 	data, err := api.FetchV3(tx)
 	if err != nil {
@@ -55,6 +56,7 @@ func (ctx *Context) apiV3NewHandler(resp http.ResponseWriter, req *http.Request)
 		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	tx.Cleanup()
 
 	output, err := json.Marshal(data)
 	if err != nil {
