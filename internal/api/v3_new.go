@@ -74,7 +74,7 @@ func FetchV3(ctx context.Context, tx *db.Connection) (*V3, error) {
       || ' ' || "course"."code"
       || ' ' || "course"."campus"
       || '-' || to_char("section"."section", 'FM00')
-    , "staff"."first_name" || ' ' || "staff"."last_name"
+    , "staff"."name_first" || ' ' || "staff"."name_last"
     FROM "section_staff"
     JOIN "staff" ON "staff"."id" = "section_staff"."staff_id"
     JOIN "section" ON "section"."id" = "section_staff"."section_id"
