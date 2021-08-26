@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/update"
 	"github.com/kr/pretty"
 	"log"
 	"mime/multipart"
@@ -102,12 +103,12 @@ func (ctx *Context) inboundHandler(resp http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	updateInfo, err := dbConn.Update(req.Context(), data)
+	summaries, err := update.Update(req.Context(), ctx.dbConn, data)
 	if err != nil {
-		log.Printf("UPLOAD: failed to update DB, %v", err)
+		log.Printf("UPLOAD: failed to update DB: %v", err)
 		return
 	}
-	pretty.Logf("update info: %# v", updateInfo)
+	pretty.Logf("update info: %# v", summaries)
 
 	ctx.oldState.SetData(data)
 

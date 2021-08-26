@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/db"
+	"github.com/victorspringer/http-cache"
+	"github.com/victorspringer/http-cache/adapter/memory"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Server struct {
@@ -24,7 +27,22 @@ func (c *Cmd) NewServer() (*Server, error) {
 		return nil, fmt.Errorf("failed to connect db: %w", err)
 	}
 
-	// TODO get rid of wack recursion
+	cacheAdapter, err := memory.NewAdapter(
+		memory.AdapterWithAlgorithm(memory.MFU),
+		memory.AdapterWithCapacity(256),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize cache adapter: %w", err)
+	}
+
+	cacheClient, err := cache.NewClient(
+		cache.ClientWithAdapter(cacheAdapter),
+		cache.ClientWithTTL(time.Minute),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize cache middleware: %w", err)
+	}
+
 	mux := http.NewServeMux()
 	ctx := &Context{
 		dbConn:       conn,
@@ -35,7 +53,11 @@ func (c *Cmd) NewServer() (*Server, error) {
 	mux.HandleFunc("/raw/", ctx.rawHandler)
 	mux.HandleFunc("/raw/staff", ctx.rawStaffHandler)
 
-	mux.Handle("/api/", http.StripPrefix("/api", ctx.apiHandler()))
+	mux.Handle("/api/",
+		http.StripPrefix("/api",
+			cacheClient.Middleware(ctx.apiHandler()),
+		),
+	)
 
 	s := &Server{
 		&http.Server{

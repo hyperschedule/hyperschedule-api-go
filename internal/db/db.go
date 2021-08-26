@@ -26,6 +26,13 @@ type Connection struct {
 	db *pgxpool.Pool
 }
 
+func (conn *Connection) Tx(
+	ctx context.Context,
+	f func(context.Context, pgx.Tx) error,
+) error {
+	return conn.db.BeginFunc(ctx, func(tx pgx.Tx) error { return f(ctx, tx) })
+}
+
 type Tx struct {
 	tx  pgx.Tx
 	ctx context.Context
@@ -43,8 +50,16 @@ func (conn *Connection) Batch(ctx context.Context, b *pgx.Batch) pgx.BatchResult
 	return conn.db.SendBatch(ctx, b)
 }
 
+func (tx *Tx) Batch(b *pgx.Batch) pgx.BatchResults {
+	return tx.tx.SendBatch(tx.ctx, b)
+}
+
 func (tx *Tx) Cleanup() error {
 	return tx.tx.Rollback(tx.ctx)
+}
+
+func (tx *Tx) Commit() error {
+	return tx.tx.Commit(tx.ctx)
 }
 
 func (tx *Tx) Exec(q string, args ...interface{}) (pgconn.CommandTag, error) {
