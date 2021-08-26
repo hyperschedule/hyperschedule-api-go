@@ -21,6 +21,9 @@ pgcli:
 migrate *args:
   migrate -path 'migrate' -database "$DB_URL?sslmode=disable" "$@"
 
+migrate-new name:
+  migrate create -ext 'sql' -dir 'migrate' "$1"
+
 upload path:
   zip -qj - '{{path}}'/* \
   | curl \
