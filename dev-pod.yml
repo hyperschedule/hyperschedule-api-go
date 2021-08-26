@@ -26,3 +26,11 @@ spec:
         - mountPath: "/var/lib/postgresql/data"
           name: "hyperschedule-dev-db"
       workingDir: "/"
+    - image: "docker.io/library/redis:latest"
+      args:
+        - "redis"
+      command:
+        - "docker-entrypoint.sh"
+      ports:
+        - containerPort: 6379
+          hostPort: 9736
