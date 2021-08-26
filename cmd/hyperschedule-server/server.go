@@ -29,7 +29,7 @@ func (c *Cmd) NewServer() (*Server, error) {
 
 	cacheAdapter, err := memory.NewAdapter(
 		memory.AdapterWithAlgorithm(memory.MFU),
-		memory.AdapterWithCapacity(256),
+		memory.AdapterWithCapacity(8),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize cache adapter: %w", err)
