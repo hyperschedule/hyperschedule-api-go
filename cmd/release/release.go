@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	dbUrl := os.Getenv("DATABASE_URL")
+	dbUrl := os.Getenv("DB_URL")
 	if len(dbUrl) == 0 {
-		log.Fatalf("DATABASE_URL undefined")
+		log.Fatalf("DB_URL undefined")
 	}
 
 	log.Printf("running migrations")
