@@ -9,9 +9,24 @@ import (
 
 func (ctx *Context) apiHandler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v3/courses", ctx.apiV3Handler)
-	mux.HandleFunc("/v3-new/courses", ctx.apiV3NewHandler)
+
+	stripQueryCache := func(
+		f func(http.ResponseWriter, *http.Request),
+	) http.Handler {
+		return stripQuery(ctx.apiCache.Middleware(http.HandlerFunc(f)))
+	}
+
+	mux.Handle("/v3/courses", stripQueryCache(ctx.apiV3Handler))
+	mux.Handle("/v3-new/courses", stripQueryCache(ctx.apiV3NewHandler))
+
 	return mux
+}
+
+func stripQuery(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		req.URL.RawQuery = ""
+		handler.ServeHTTP(resp, req)
+	})
 }
 
 func getIp(req *http.Request) string {

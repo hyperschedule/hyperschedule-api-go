@@ -19,6 +19,7 @@ type Context struct {
 	uploaderHash string
 	dbConn       *db.Connection
 	oldState     *OldState
+	apiCache     *cache.Client
 }
 
 func (c *Cmd) NewServer() (*Server, error) {
@@ -48,16 +49,13 @@ func (c *Cmd) NewServer() (*Server, error) {
 		dbConn:       conn,
 		uploaderHash: c.UploadEmailHash,
 		oldState:     &OldState{},
+		apiCache:     cacheClient,
 	}
 	mux.HandleFunc("/upload/", ctx.inboundHandler)
 	mux.HandleFunc("/raw/", ctx.rawHandler)
 	mux.HandleFunc("/raw/staff", ctx.rawStaffHandler)
 
-	mux.Handle("/api/",
-		http.StripPrefix("/api",
-			cacheClient.Middleware(ctx.apiHandler()),
-		),
-	)
+	mux.Handle("/api/", http.StripPrefix("/api", ctx.apiHandler()))
 
 	s := &Server{
 		&http.Server{
