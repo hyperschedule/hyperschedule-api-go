@@ -25,8 +25,8 @@ migrate-new name:
   migrate create -ext 'sql' -dir 'migrate' "$1"
 
 upload path:
-  zip -qj - '{{path}}'/* \
-  | curl \
+  @zip -qj - '{{path}}'/* \
+  | curl -f \
     -F 'envelope={"from": "", "to": ["{{dev_upload_email}}"]}' \
     -F 'x=@-;filename=HMCarchive.zip' \
     'localhost:8332/upload/'

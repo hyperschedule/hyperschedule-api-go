@@ -63,6 +63,10 @@ func (ts tables) apply(tx *db.Tx) (SummaryApply, error) {
 		stats[i] = s
 	}
 
+	if err := results.Close(); err != nil {
+		return SummaryApply{}, fmt.Errorf("failed to close batch results: %w", err)
+	}
+
 	return summaryApplyFromSeq(stats), nil
 }
 

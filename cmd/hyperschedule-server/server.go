@@ -3,23 +3,31 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/db"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/update"
+	"github.com/kr/pretty"
 	"github.com/victorspringer/http-cache"
 	"github.com/victorspringer/http-cache/adapter/memory"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
 type Server struct {
-	*http.Server
+	server *http.Server
+	ctx    *Context
 }
 
 type Context struct {
-	uploaderHash string
-	dbConn       *db.Connection
-	oldState     *OldState
-	apiCache     *cache.Client
+	uploaderHash    string
+	updateChan      chan *data.Data
+	dbConn          *db.Connection
+	oldState        *OldState
+	apiCache        *cache.Client
+	apiV3CacheData  []byte
+	apiV3CacheMutex *sync.RWMutex
 }
 
 func (c *Cmd) NewServer() (*Server, error) {
@@ -46,10 +54,13 @@ func (c *Cmd) NewServer() (*Server, error) {
 
 	mux := http.NewServeMux()
 	ctx := &Context{
-		dbConn:       conn,
-		uploaderHash: c.UploadEmailHash,
-		oldState:     &OldState{},
-		apiCache:     cacheClient,
+		dbConn:          conn,
+		updateChan:      make(chan *data.Data),
+		uploaderHash:    c.UploadEmailHash,
+		oldState:        &OldState{},
+		apiCache:        cacheClient,
+		apiV3CacheData:  nil,
+		apiV3CacheMutex: &sync.RWMutex{},
 	}
 	mux.HandleFunc("/upload/", ctx.inboundHandler)
 	mux.HandleFunc("/raw/", ctx.rawHandler)
@@ -58,18 +69,36 @@ func (c *Cmd) NewServer() (*Server, error) {
 	mux.Handle("/api/", http.StripPrefix("/api", ctx.apiHandler()))
 
 	s := &Server{
-		&http.Server{
+		server: &http.Server{
 			Addr:    fmt.Sprintf(":%d", c.Port),
 			Handler: mux,
 		},
+		ctx: ctx,
 	}
 	return s, nil
 }
 
 func (s *Server) Run() error {
-	log.Printf("listening on %#v", s.Addr)
-	if err := s.ListenAndServe(); err != nil {
+	log.Printf("listening on %#v", s.server.Addr)
+	go s.ctx.listenUpdates()
+	if err := s.server.ListenAndServe(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (ctx *Context) listenUpdates() {
+	for {
+		data := <-ctx.updateChan
+
+		summaries, err := update.Update(context.Background(), ctx.dbConn, data)
+		if err != nil {
+			log.Printf("UPLOAD: failed to update DB: %v", err)
+			return
+		}
+		ctx.apiV3CacheMutex.Lock()
+		ctx.apiV3CacheData = nil
+		ctx.apiV3CacheMutex.Unlock()
+		pretty.Logf("update info: %# v", summaries)
+	}
 }

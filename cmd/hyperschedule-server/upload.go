@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk"
-	"github.com/MuddCreates/hyperschedule-api-go/internal/update"
-	"github.com/kr/pretty"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -83,7 +81,6 @@ func (ctx *Context) inboundHandler(resp http.ResponseWriter, req *http.Request) 
 	email, err := parseEmail(req)
 	if err != nil {
 		log.Printf("UPLOAD: Failed to parse email from request: %v", err)
-
 		resp.WriteHeader(http.StatusBadRequest)
 		resp.Write([]byte("no way jose"))
 		return
@@ -103,15 +100,22 @@ func (ctx *Context) inboundHandler(resp http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	summaries, err := update.Update(req.Context(), ctx.dbConn, data)
-	if err != nil {
-		log.Printf("UPLOAD: failed to update DB: %v", err)
-		return
-	}
-	pretty.Logf("update info: %# v", summaries)
-
 	ctx.oldState.SetData(data)
 
-	log.Printf("UPLOAD: successfully parsed email")
-	resp.WriteHeader(http.StatusOK)
+	select {
+	case ctx.updateChan <- data:
+		log.Printf("UPLOAD: successfully parsed email")
+		resp.WriteHeader(http.StatusOK)
+	default:
+		log.Printf("received request while busy")
+		resp.WriteHeader(http.StatusServiceUnavailable)
+	}
+
+	//summaries, err := update.Update(req.Context(), ctx.dbConn, data)
+	//if err != nil {
+	//	log.Printf("UPLOAD: failed to update DB: %v", err)
+	//	return
+	//}
+	//pretty.Logf("update info: %# v", summaries)
+
 }
