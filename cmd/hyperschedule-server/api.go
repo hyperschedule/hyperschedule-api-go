@@ -10,15 +10,15 @@ import (
 func (ctx *Context) apiHandler() http.Handler {
 	mux := http.NewServeMux()
 
-	stripQueryCache := func(
-		f func(http.ResponseWriter, *http.Request),
-	) http.Handler {
-		return stripQuery(ctx.apiCache.Middleware(http.HandlerFunc(f)))
-	}
+	//stripQueryCache := func(
+	//	f func(http.ResponseWriter, *http.Request),
+	//) http.Handler {
+	//	return stripQuery(ctx.apiCache.Middleware(http.HandlerFunc(f)))
+	//}
 
-	mux.Handle("/v3/courses", stripQueryCache(ctx.apiV3Handler))
-	mux.Handle("/v3-new/courses", stripQueryCache(ctx.apiV3NewHandler))
-	mux.HandleFunc("/v3-newest/courses", ctx.apiV3NewestHandler)
+	//mux.Handle("/v3/courses", stripQueryCache(ctx.apiV3Handler))
+	//mux.Handle("/v3-new/courses", stripQueryCache(ctx.apiV3NewHandler))
+	mux.HandleFunc("/v3/courses", ctx.apiV3NewestHandler)
 
 	return mux
 }
