@@ -57,6 +57,7 @@ type Term struct {
 type Name struct {
 	First string
 	Last  string
+	Alt   *string
 }
 
 type Schedule struct {

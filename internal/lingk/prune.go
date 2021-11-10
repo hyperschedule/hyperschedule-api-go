@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/data"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/altstaff"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsession"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/course"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
@@ -63,6 +64,15 @@ func (t *tables) prune() (*data.Data, []error) {
 		staff[s.Id] = s
 	}
 
+	altStaff := make(map[string]*altstaff.Entry, 128)
+	for _, alt := range t.altStaff {
+		if _, ok := altStaff[alt.Id]; ok {
+			errs = append(errs, errors.New("altstaff duplicate id"))
+		}
+		altStaff[alt.Id] = alt
+	}
+	// TODO check at very end whether there are excess altstaff rows not in staff
+
 	csTerms := make(map[string]string)
 	for _, c := range t.calendarSessionSection {
 		if _, ok := terms[c.Id]; !ok {
@@ -108,7 +118,11 @@ func (t *tables) prune() (*data.Data, []error) {
 		}
 
 		if _, ok := p.Staff[s.StaffId]; !ok {
-			p.Staff[s.StaffId] = data.Name{First: st.First, Last: st.Last}
+			entry := data.Name{First: st.First, Last: st.Last}
+			if alt, ok := altStaff[s.StaffId]; ok {
+				entry.Alt = &alt.Alt
+			}
+			p.Staff[s.StaffId] = entry
 		}
 
 		seen, ok := csStaffSeen[s.CourseSectionId]

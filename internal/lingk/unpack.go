@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"errors"
 	"fmt"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/altstaff"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsession"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/calendarsessionsection"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/course"
@@ -76,6 +77,13 @@ func (t *tables) unpackStaff(r io.Reader) error {
 	return err
 }
 
+func (t *tables) unpackAltStaff(r io.Reader) error {
+	entries, errs, err := altstaff.ReadAll(r)
+	t.warnings = append(t.warnings, errs...)
+	t.altStaff = entries
+	return err
+}
+
 func unpackIgnore(_ io.Reader) error { return nil }
 
 func (t *tables) unpackers() map[string]func(r io.Reader) error {
@@ -87,6 +95,7 @@ func (t *tables) unpackers() map[string]func(r io.Reader) error {
 		"calendarsessionsection_1.csv": t.unpackCalendarSessionSection,
 		"sectioninstructor_1.csv":      t.unpackSectionInstructor,
 		"staff_1.csv":                  t.unpackStaff,
+		"altstaff_1.csv":               t.unpackAltStaff,
 		"department_1.csv":             unpackIgnore,
 		"departmentcourse_1.csv":       unpackIgnore,
 		"facility_1.csv":               unpackIgnore,

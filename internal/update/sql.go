@@ -33,6 +33,7 @@ var (
 				{"lingk_id", "text PRIMARY KEY"},
 				{"name_first", "text NOT NULL"},
 				{"name_last", "text NOT NULL"},
+				{"alt", "text"},
 			},
 		},
 

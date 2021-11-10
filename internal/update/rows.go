@@ -35,7 +35,7 @@ func rowsFrom(d *data.Data) *rows {
 	}
 
 	for lingkId, name := range d.Staff {
-		rs.staff = append(rs.staff, []interface{}{lingkId, name.First, name.Last})
+		rs.staff = append(rs.staff, []interface{}{lingkId, name.First, name.Last, name.Alt})
 	}
 
 	for code, term := range d.Terms {
