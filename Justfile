@@ -1,4 +1,5 @@
 set positional-arguments
+set dotenv-load
 
 dev_postgres_password := 'cool orange banana peels'
 dev_upload_email := 'dev@api.hyperschedule.io'
