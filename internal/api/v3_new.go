@@ -19,7 +19,7 @@ func v3ScheduleLess(s1, s2 *V3Schedule) bool {
 }
 
 func FetchV3(ctx context.Context, tx *db.Connection) (*V3, error) {
-	semester := "SP2022"
+	semester := "FA2022"
 
 	// we get very early preview data, which means the "latest" detected semester
 	// might actually be SP2022 when we want FA2021, so for now this
