@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/api"
 	"log"
 	"net/http"
@@ -79,18 +80,28 @@ func (ctx *Context) apiV3NewHandler(resp http.ResponseWriter, req *http.Request)
 }
 
 func (ctx *Context) apiV3NewestHandler(resp http.ResponseWriter, req *http.Request) {
-	ctx.apiV3CacheMutex.RLock()
 
 	resp.Header().Add("Content-Type", "application/json")
 	resp.Header().Add("Access-Control-Allow-Origin", "*")
 
+	ctx.apiV3CacheMutex.RLock()
+
 	if ctx.apiV3CacheData != nil && time.Since(ctx.apiV3CacheTime).Minutes() < 5 {
-		resp.Write(ctx.apiV3CacheData)
+
+		cacheETag := fmt.Sprintf("\"%d\"", ctx.apiV3CacheTime.Unix())
+
+		if req.Header.Get("If-None-Match") == cacheETag {
+			resp.WriteHeader(http.StatusNotModified)
+		} else {
+			resp.Header().Add("ETag", cacheETag)
+			resp.Write(ctx.apiV3CacheData)
+		}
+
 		ctx.apiV3CacheMutex.RUnlock()
 		return
 	}
 
-	log.Printf("cache empty, generating new cache data")
+	log.Printf("cache empty/outdated, generating new cache data")
 
 	ctx.apiV3CacheMutex.RUnlock()
 
@@ -108,11 +119,14 @@ func (ctx *Context) apiV3NewestHandler(resp http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	resp.Write(output)
+	newCacheTime := time.Now()
 
 	ctx.apiV3CacheMutex.Lock()
 	ctx.apiV3CacheData = output
-	ctx.apiV3CacheTime = time.Now()
+	ctx.apiV3CacheTime = newCacheTime
 	ctx.apiV3CacheMutex.Unlock()
+
+	resp.Header().Add("ETag", fmt.Sprintf("\"%d\"", newCacheTime.Unix()))
+	resp.Write(output)
 
 }
