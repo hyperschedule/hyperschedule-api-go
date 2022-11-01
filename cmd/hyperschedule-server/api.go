@@ -5,6 +5,7 @@ import (
 	"github.com/MuddCreates/hyperschedule-api-go/internal/api"
 	"log"
 	"net/http"
+	"time"
 )
 
 func (ctx *Context) apiHandler() http.Handler {
@@ -83,7 +84,7 @@ func (ctx *Context) apiV3NewestHandler(resp http.ResponseWriter, req *http.Reque
 	resp.Header().Add("Content-Type", "application/json")
 	resp.Header().Add("Access-Control-Allow-Origin", "*")
 
-	if ctx.apiV3CacheData != nil {
+	if ctx.apiV3CacheData != nil && time.Since(ctx.apiV3CacheTime).Minutes() < 5 {
 		resp.Write(ctx.apiV3CacheData)
 		ctx.apiV3CacheMutex.RUnlock()
 		return
@@ -111,6 +112,7 @@ func (ctx *Context) apiV3NewestHandler(resp http.ResponseWriter, req *http.Reque
 
 	ctx.apiV3CacheMutex.Lock()
 	ctx.apiV3CacheData = output
+	ctx.apiV3CacheTime = time.Now()
 	ctx.apiV3CacheMutex.Unlock()
 
 }

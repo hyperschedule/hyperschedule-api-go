@@ -27,6 +27,7 @@ type Context struct {
 	oldState        *OldState
 	apiCache        *cache.Client
 	apiV3CacheData  []byte
+	apiV3CacheTime  time.Time
 	apiV3CacheMutex *sync.RWMutex
 }
 
@@ -61,6 +62,7 @@ func (c *Cmd) NewServer() (*Server, error) {
 		apiCache:        cacheClient,
 		apiV3CacheData:  nil,
 		apiV3CacheMutex: &sync.RWMutex{},
+		apiV3CacheTime:  time.Unix(0, 0),
 	}
 	mux.HandleFunc("/upload/", ctx.inboundHandler)
 	mux.HandleFunc("/raw/", ctx.rawHandler)
