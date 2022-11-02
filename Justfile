@@ -4,6 +4,10 @@ set dotenv-load
 dev_postgres_password := 'cool orange banana peels'
 dev_upload_email := 'dev@api.hyperschedule.io'
 
+dev_upload_token := 'canopener herald lunchbox upstart'
+dev_upload_token_hash := 'e30c4c12befae4d0220954faefe63556f5c7df0aecd8c522f771f707f466daf3'
+
+
 pass:
 
 setup:

@@ -22,6 +22,7 @@ type Server struct {
 
 type Context struct {
 	uploaderHash    string
+	uploadTokenHash string
 	updateChan      chan *data.Data
 	dbConn          *db.Connection
 	oldState        *OldState
@@ -57,12 +58,14 @@ func (c *Cmd) NewServer() (*Server, error) {
 		dbConn:          conn,
 		updateChan:      make(chan *data.Data),
 		uploaderHash:    c.UploadEmailHash,
+		uploadTokenHash: c.UploadTokenHash,
 		oldState:        &OldState{},
 		apiCache:        cacheClient,
 		apiV3CacheData:  nil,
 		apiV3CacheMutex: &sync.RWMutex{},
 	}
 	mux.HandleFunc("/upload/", ctx.inboundHandler)
+	mux.HandleFunc("/ifttt/", ctx.iftttHandler)
 	mux.HandleFunc("/raw/", ctx.rawHandler)
 	mux.HandleFunc("/raw/staff", ctx.rawStaffHandler)
 
