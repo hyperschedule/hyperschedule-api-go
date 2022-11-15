@@ -44,6 +44,11 @@ func (t *tables) prune() (*data.Data, []error) {
 	for _, c := range t.course {
 		if _, ok := courses[c.Id]; ok {
 			errs = append(errs, errors.New("course with duplicate id"))
+
+			// use earlier entry, refuse to override. example course where this is
+			// correct: LIT 141 HM; portal says "Writing Intensive: Yes". as of
+			// 20221101, the earlier entry says "Yes" and the later one says "No"
+			continue
 		}
 		courses[c.Id] = c
 	}

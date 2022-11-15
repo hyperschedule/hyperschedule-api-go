@@ -34,3 +34,4 @@ spec:
       ports:
         - containerPort: 6379
           hostPort: 9736
+      name: 'hyperschedule-dev-redis'

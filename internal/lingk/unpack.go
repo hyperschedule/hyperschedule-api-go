@@ -122,7 +122,12 @@ func Unpack(fh *multipart.FileHeader) (*tables, error) {
 		return nil, err
 	}
 	defer f.Close()
-	r, err := zip.NewReader(f, fh.Size)
+
+	return UnpackZip(f, fh.Size)
+}
+
+func UnpackZip(f io.ReaderAt, size int64) (*tables, error) {
+	r, err := zip.NewReader(f, size)
 	if err != nil {
 		return nil, err
 	}

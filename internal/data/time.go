@@ -21,6 +21,9 @@ func ParseTime(s string) (Time, error) {
 	if !(0 <= h && h < 24 && 0 <= m && m < 60) {
 		return Time{}, errors.New("bad time range")
 	}
+	if h == 0 {
+		h = 12
+	}
 	return Time{Hour: h, Minute: m}, nil
 }
 
