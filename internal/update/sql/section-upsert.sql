@@ -6,6 +6,7 @@ INSERT INTO "section"
   , "status"
   , "seats_enrolled"
   , "seats_capacity"
+  , "perms"
   )
 SELECT
     "course"."id"
@@ -15,6 +16,7 @@ SELECT
   , "section_tmp"."status"
   , "section_tmp"."seats_enrolled"
   , "section_tmp"."seats_capacity"
+  , "section_tmp"."perms"
 FROM "section_tmp"
 JOIN "course" ON
   "course"."department" = "section_tmp"."course_department"
@@ -26,11 +28,13 @@ DO UPDATE SET
   , "status" = EXCLUDED."status"
   , "seats_enrolled" = EXCLUDED."seats_enrolled"
   , "seats_capacity" = EXCLUDED."seats_capacity"
+  , "perms" = EXCLUDED."perms"
   , "deleted_at" = NULL
 WHERE
   "section"."quarter_credits" <> EXCLUDED."quarter_credits"
   OR "section"."status" <> EXCLUDED."status"
   OR "section"."seats_enrolled" <> EXCLUDED."seats_enrolled"
   OR "section"."seats_capacity" <> EXCLUDED."seats_capacity"
+  OR "section"."perms" <> EXCLUDED."perms"
   OR "section"."deleted_at" IS NOT NULL
 

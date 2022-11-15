@@ -85,6 +85,14 @@ func (t *tables) prune() (*data.Data, []error) {
 		csTerms[c.CourseSectionId] = c.Id
 	}
 
+	permCount := make(map[string]int)
+	for _, c := range t.permCount {
+		if _, ok := permCount[c.Id]; ok {
+			errs = append(errs, errors.New("permcount dup entry"))
+		}
+		permCount[c.Id] = c.Count
+	}
+
 	csScheduleSeen := make(map[courseSectionScheduleKey]struct{})
 	csSchedule := make(map[string][]*data.Schedule)
 	for _, c := range t.courseSectionSchedule {
@@ -198,6 +206,7 @@ func (t *tables) prune() (*data.Data, []error) {
 			QuarterCredits: cs.QuarterCredits,
 			Schedule:       csSchedule[cs.Id],
 			Staff:          csStaff[cs.Id],
+			Perms:          permCount[cs.Id],
 		}
 	}
 

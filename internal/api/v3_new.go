@@ -62,6 +62,7 @@ func FetchV3(ctx context.Context, tx *db.Connection) (*V3, error) {
     , "section"."seats_capacity"
     , "section"."seats_enrolled"
     , "section"."status"
+    , "section"."perms"
     FROM "section"
     JOIN "course" ON "course"."id" = "section"."course_id"
     JOIN "term" ON "term"."code" = "section"."term_code"
@@ -147,6 +148,7 @@ func FetchV3(ctx context.Context, tx *db.Connection) (*V3, error) {
 			seatsCapacity,
 			seatsEnrolled int
 			status string
+			perms  int
 		)
 
 		if err := rowsCourses.Scan(
@@ -161,6 +163,7 @@ func FetchV3(ctx context.Context, tx *db.Connection) (*V3, error) {
 			&seatsCapacity,
 			&seatsEnrolled,
 			&status,
+			&perms,
 		); err != nil {
 			return nil, fmt.Errorf("failed to query courses: %w", err)
 		}
@@ -185,6 +188,7 @@ func FetchV3(ctx context.Context, tx *db.Connection) (*V3, error) {
 			SeatsTotal:       seatsCapacity,
 			SeatsFilled:      seatsEnrolled,
 			EnrollmentStatus: status,
+			PermCount:        perms,
 		}
 	}
 	rowsCourses.Close()

@@ -38,6 +38,7 @@ type CourseSection struct {
 	Section        int
 	Seats          Seats
 	Status         Status
+	Perms          int
 	QuarterCredits int
 	Schedule       []*Schedule
 	Staff          []string

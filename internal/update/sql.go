@@ -56,6 +56,7 @@ var (
 				{"status", "status  NOT NULL"},
 				{"seats_enrolled", "integer NOT NULL"},
 				{"seats_capacity", "integer NOT NULL"},
+				{"perms", "integer NOT NULL"},
 			}...),
 			constraints: []constraintSpec{pkey(sectionKeyColNames...)},
 		},

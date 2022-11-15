@@ -40,6 +40,7 @@ type V3Course struct {
 	SeatsFilled        int           `json:"courseSeatsFilled"`
 	WaitlistLength     *int          `json:"courseWaitlistLength"`
 	EnrollmentStatus   string        `json:"courseEnrollmentStatus"`
+	PermCount          int           `json:"permCount"`
 }
 
 type V3Schedule struct {

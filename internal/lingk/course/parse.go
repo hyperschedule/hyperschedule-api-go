@@ -1,8 +1,10 @@
 package course
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 const expectHead = "" +
@@ -116,7 +118,7 @@ func parse(row string) (*Entry, []*warn, *fail) {
 	}, warns, nil
 }
 
-func ParseAll(contents []byte) ([]*Entry, []*warn, []*fail, error) {
+func ParseAllOld(contents []byte) ([]*Entry, []*warn, []*fail, error) {
 	matchHead := string(reHead.Find(contents))
 	if matchHead != expectHead {
 		return nil, nil, nil, ErrIncorrectHead(matchHead)
@@ -137,4 +139,79 @@ func ParseAll(contents []byte) ([]*Entry, []*warn, []*fail, error) {
 		courses = append(courses, course)
 	}
 	return courses, warns, fails, nil
+}
+
+func parseNewCell(stuff []byte, i int, row []byte) string {
+	if len(stuff) < 2 {
+		fmt.Printf("%d: %s", i, string(row))
+		return "BAAAAAAA"
+	}
+	return string(stuff[1 : len(stuff)-1])
+}
+
+func ParseAll(contents []byte) ([]*Entry, []*warn, []*fail, error) {
+
+	courses := make([]*Entry, 0, 4096)
+	fails := make([]*fail, 0, 8)
+	warns := make([]*warn, 0, 8)
+
+	for i, line := range bytes.Split(bytes.TrimSpace(contents), []byte{'\n'})[1:] {
+		cells := bytes.Split(line, []byte("||`||"))
+
+		stuff := []string{}
+		for _, c := range cells {
+			stuff = append(stuff, string(c))
+		}
+
+		// id
+		id := parseNewCell(cells[0], i, line)
+
+		matchCode := reCode.FindStringSubmatch(id)
+		if matchCode == nil {
+			fails = append(fails, &fail{full: string(line), id: id, data: &failCodeMatch{input: id}})
+			continue
+		}
+
+		codeDept := matchCode[1]
+		codeNum := matchCode[2]
+		codeCampus := matchCode[3]
+
+		if len(codeCampus) == 0 {
+			warns = append(warns, &warn{full: string(line), id: id, data: &warnCodeCampusEmpty{externalId: id}})
+		}
+
+		courses = append(courses, &Entry{
+			Id:           id,
+			Department:   codeDept,
+			Number:       codeNum,
+			DepartmentId: parseNewCell(cells[4], i, line),
+			Campus:       parseNewCell(cells[5], i, line),
+			Title:        parseNewCell(cells[3], i, line),
+			Description:  strings.ReplaceAll(parseNewCell(cells[7], i, line), "||``||", "\n"),
+		})
+
+	}
+
+	return courses, warns, fails, nil
+
+	//matchHead := string(reHead.Find(contents))
+	//if matchHead != expectHead {
+	//	return nil, nil, nil, ErrIncorrectHead(matchHead)
+	//}
+	//contents = contents[len(matchHead):]
+
+	//chunks := append(reStart.FindAllIndex(contents, -1), []int{len(contents)})
+	//courses := make([]*Entry, 0, len(chunks)-1)
+	//fails := make([]*fail, 0, 8)
+	//warns := make([]*warn, 0, 8)
+	//for i, chunk := range chunks[:len(chunks)-1] {
+	//	course, warn, fail := parse(string(contents[chunk[0]:chunks[i+1][0]]))
+	//	if fail != nil {
+	//		fails = append(fails, fail)
+	//		continue
+	//	}
+	//	warns = append(warns, warn...)
+	//	courses = append(courses, course)
+	//}
+	//return courses, warns, fails, nil
 }

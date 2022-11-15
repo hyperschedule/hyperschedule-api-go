@@ -10,6 +10,7 @@ import (
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/course"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/coursesection"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/coursesectionschedule"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/permcount"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/sectioninstructor"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
 	"golang.org/x/text/encoding/charmap"
@@ -71,16 +72,25 @@ func (t *tables) unpackSectionInstructor(r io.Reader) error {
 }
 
 func (t *tables) unpackStaff(r io.Reader) error {
-	entries, errs, err := staff.ReadAll(r)
+	nr := transform.NewReader(r, charmap.Windows1252.NewDecoder())
+	entries, errs, err := staff.ReadAll(nr)
 	t.warnings = append(t.warnings, errs...)
 	t.staff = entries
 	return err
 }
 
 func (t *tables) unpackAltStaff(r io.Reader) error {
-	entries, errs, err := altstaff.ReadAll(r)
+	nr := transform.NewReader(r, charmap.Windows1252.NewDecoder())
+	entries, errs, err := altstaff.ReadAll(nr)
 	t.warnings = append(t.warnings, errs...)
 	t.altStaff = entries
+	return err
+}
+
+func (t *tables) unpackPermCount(r io.Reader) error {
+	entries, errs, err := permcount.ReadAll(r)
+	t.warnings = append(t.warnings, errs...)
+	t.permCount = entries
 	return err
 }
 
@@ -102,6 +112,7 @@ func (t *tables) unpackers() map[string]func(r io.Reader) error {
 		"institution_1.csv":            unpackIgnore,
 		"program_1.csv":                unpackIgnore,
 		"programcourse_1.csv":          unpackIgnore,
+		"permcount_1.csv":              t.unpackPermCount,
 	}
 }
 
@@ -130,7 +141,7 @@ func Unpack(fh *multipart.FileHeader) (*tables, error) {
 		}
 		err = unpacker(r)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unpack %s failed: %w", mem.Name, err)
 		}
 	}
 

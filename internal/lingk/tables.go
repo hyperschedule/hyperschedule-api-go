@@ -7,6 +7,7 @@ import (
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/course"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/coursesection"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/coursesectionschedule"
+	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/permcount"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/sectioninstructor"
 	"github.com/MuddCreates/hyperschedule-api-go/internal/lingk/staff"
 )
@@ -20,5 +21,6 @@ type tables struct {
 	sectionInstructor      []*sectioninstructor.Entry
 	staff                  []*staff.Entry
 	altStaff               []*altstaff.Entry
+	permCount              []*permcount.Entry
 	warnings               []error
 }

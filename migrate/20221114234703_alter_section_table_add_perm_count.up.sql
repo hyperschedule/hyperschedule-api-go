@@ -1,0 +1,1 @@
+ALTER TABLE "section" ADD COLUMN "perms" int NOT NULL DEFAULT 0;

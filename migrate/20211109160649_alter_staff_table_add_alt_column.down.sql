@@ -1,1 +1,1 @@
-ALTER TABLE "staff" DROP COLUMN "deleted_at";
+ALTER TABLE "staff" DROP COLUMN "alt";

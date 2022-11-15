@@ -68,6 +68,7 @@ func rowsFrom(d *data.Data) *rows {
 			section.Status.String(),
 			section.Seats.Enrolled,
 			section.Seats.Capacity,
+			section.Perms,
 		))
 
 		for _, lingkId := range section.Staff {
